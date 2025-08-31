@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulatore di Vita da Bilionario </title>
+    <title>Simulatore di Vita da Bilionario (Euro Edition)</title>
     <link rel="icon" type="image/png" href="https://i.ibb.co/PGydXgGr/Bilionario-1.png">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -446,6 +446,10 @@
 
         // Game State Functions
         function formatCurrency(amount) {
+            // Handle NaN and null values gracefully
+            if (isNaN(amount) || amount === null) {
+                return "N/A";
+            }
             return new Intl.NumberFormat('it-IT', {
                 style: 'currency',
                 currency: 'EUR'
@@ -453,17 +457,19 @@
         }
 
         function calculateNetWorth() {
-            let totalValue = playerMoney + unpaiedTaxDebt;
+            let totalValue = playerMoney;
+            // Il debito fiscale è una passività, deve essere sottratto.
+            totalValue -= unpaiedTaxDebt;
 
             // Add value of stocks
             stocks.forEach(stock => {
-                totalValue += (stock.owned || 0) * stock.value;
+                totalValue += (stock.owned || 0) * (stock.isFailed ? 0 : stock.value);
             });
 
             // Add value of currencies
             currencies.forEach(currency => {
                 if (currency.name !== "Euro") {
-                    totalValue += (currency.owned || 0) * currency.value;
+                    totalValue += (currency.owned || 0) * (currency.isFailed ? 0 : currency.value);
                 }
             });
 
@@ -503,6 +509,7 @@
 
                 const priceChangeClass = stock.value > stock.previousValue ? 'price-up' : (stock.value < stock.previousValue ? 'price-down' : 'price-neutral');
                 const valueDisplay = stock.isFailed ? 'Fallito' : `€${stock.value.toFixed(2)}`;
+                const isDisabled = stock.isFailed ? 'disabled' : '';
 
                 const item = document.createElement('div');
                 item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
@@ -513,8 +520,8 @@
                 </div>
                 <div class="flex gap-2 mt-2">
                     <input type="number" id="buy-stock-${stock.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
-                    <button onclick="buyAsset('stock', '${stock.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
-                    <button onclick="sellAsset('stock', '${stock.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                    <button onclick="buyAsset('stock', '${stock.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1" ${isDisabled}>Acquista</button>
+                    <button onclick="sellAsset('stock', '${stock.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1" ${isDisabled}>Vendi</button>
                 </div>
                 ${(stock.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${stock.owned}</p>` : ''}
             `;
@@ -527,6 +534,7 @@
 
                 const priceChangeClass = currency.value > currency.previousValue ? 'price-up' : (currency.value < currency.previousValue ? 'price-down' : 'price-neutral');
                 const valueDisplay = currency.isFailed ? 'Fallita' : `€${currency.value.toFixed(4)}`;
+                const isDisabled = currency.isFailed ? 'disabled' : '';
 
                 const item = document.createElement('div');
                 item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
@@ -537,8 +545,8 @@
                 </div>
                 <div class="flex gap-2 mt-2">
                     <input type="number" id="buy-currency-${currency.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
-                    <button onclick="buyAsset('currency', '${currency.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
-                    <button onclick="sellAsset('currency', '${currency.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                    <button onclick="buyAsset('currency', '${currency.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1" ${isDisabled}>Acquista</button>
+                    <button onclick="sellAsset('currency', '${currency.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1" ${isDisabled}>Vendi</button>
                 </div>
                 ${(currency.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${currency.owned.toFixed(2)}</p>` : ''}
             `;
@@ -615,6 +623,12 @@
 
         // Core Game Loop Functions
         function nextMonth() {
+            // Aggiungi un controllo per assicurarti che il denaro del giocatore sia un numero valido
+            if (isNaN(playerMoney)) {
+                console.error("Errore: Il patrimonio del giocatore è NaN. Resetting to 0.");
+                playerMoney = 0;
+            }
+
             // Check win condition
             if (calculateNetWorth() >= BILLION_TARGET) {
                 endGame(true);
@@ -804,6 +818,11 @@
                 return;
             }
 
+            if (asset.isFailed) {
+                 showMessage("Errore", `Non puoi vendere un asset fallito, il suo valore è zero.`);
+                 return;
+            }
+
             let revenue = quantityToSell * asset.value;
             playerMoney += revenue;
             asset.owned = (asset.owned || 0) - quantityToSell;
@@ -854,7 +873,7 @@
 
             const quantity = parseInt(document.getElementById(`buy-startup-stock-${index}`).value);
             if (isNaN(quantity) || quantity <= 0 || (startup.sharesOwned || 0) < quantity) {
-                showMessage("Errore", "Per favore, inserisci una quantità valida da vendere.");
+                showMessage("Errore", "Per favor, inserisci una quantità valida da vendere.");
                 return;
             }
 
@@ -1374,6 +1393,7 @@
     </script>
 </body>
 </html>
+
 
 <!-- oppure questo:
  <!DOCTYPE html>
@@ -2773,5 +2793,4 @@
     </script>
 </body>
 </html>
-
 -->
