@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore di Vita da Bilionario (Euro Edition)</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/PGydXgGr/Bilionario-1.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 1400px; /* Wider container */
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .section-card {
+            background-color: #f9fafb;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .input-field {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 12px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Message box specific styles */
+        #message-box, #decision-box, #save-list-box {
+            z-index: 1000;
+            pointer-events: none;
+        }
+        #message-content-wrapper, #decision-content-wrapper, #save-list-content-wrapper {
+            pointer-events: all;
+        }
+        .rotated {
+            transform: rotate(180deg);
+        }
+        .price-up {
+            color: #10B981; /* green-500 */
+        }
+        .price-down {
+            color: #EF4444; /* red-500 */
+        }
+        .price-neutral {
+            color: #6B7280; /* gray-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter">
+    <div id="game-container" class="mx-auto my-10 p-8 bg-white rounded-2xl shadow-xl max-w-4xl">
+        <h1 class="text-4xl font-extrabold text-center mb-8 text-indigo-700">Il Bilionario</h1>
+
+        <!-- Stats Section -->
+        <div id="stats" class="section-card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Le Tue Statistiche</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-lg text-gray-700">
+                <p>Patrimonio: <span id="net-worth" class="font-semibold text-green-600">€1,000.00</span></p>
+                <p>Denaro: <span id="money" class="font-semibold text-green-600">€1,000.00</span></p>
+                <p>Età: <span id="age" class="font-semibold text-gray-800">18</span></p>
+                <p>Data: <span id="date" class="font-semibold text-gray-800">Gennaio 2025</span></p>
+                <p>Lavoro: <span id="job-title" class="font-semibold text-gray-800">Disoccupato</span></p>
+                <p>Formazione: <span id="training-level" class="font-semibold text-gray-800">0</span></p>
+                <p class="text-lg">Stipendio: <span id="job-salary" class="font-semibold text-green-600">N/A</span></p>
+                <p class="text-lg">Mesi al lavoro: <span id="months-at-job" class="font-semibold">0</span></p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <!--  Sezione Report/News Mensile  -->
+            <div id="monthly-report" class="section-card">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Rapporto Mensile</h2>
+                <p id="monthly-report-text" class="text-lg text-gray-700 italic text-center">Inizia una nuova partita per vedere il tuo primo rapporto.</p>
+            </div>
+
+            <!-- Sezione Startup  (Collapsible) -->
+            <div id="startup-section" class="section-card">
+                <div id="startup-header" class="flex justify-between items-center cursor-pointer">
+                    <h2 class="text-2xl font-bold text-gray-800">Le Tue Startup</h2>
+                    <svg id="startup-arrow" class="w-6 h-6 text-gray-600 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="startup-content" class="hidden mt-4 space-y-4">
+                    <p class="text-lg text-gray-700">Denaro: <span id="startup-money" class="font-semibold text-green-600">€0.00</span></p>
+                    <p class="text-lg text-gray-700">Costo: <span id="startup-cost" class="font-semibold text-red-600">€0.00</span></p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="buy-startup-btn" class="btn bg-purple-600 text-white hover:bg-purple-700 flex-1">Avvia una Startup</button>
+                        <button id="sell-startup-btn" class="btn bg-red-600 text-white hover:bg-red-700 flex-1">Vendi Startup</button>
+                    </div>
+                    <div id="startup-details" class="mt-4">
+                        <h3 class="text-xl font-semibold mb-2 text-gray-800">Dettagli Startup:</h3>
+                        <ul id="startup-list" class="list-disc pl-5 text-gray-700">
+                        <!-- Startup list will be populated here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Investment Section -->
+        <div id="investments" class="section-card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Investimenti</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Startup Stocks -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Azioni Startup</h3>
+                    <div id="startup-stocks-list" class="space-y-4 max-h-60 overflow-y-auto">
+                        <!-- Startup stocks will be populated here -->
+                    </div>
+                </div>
+                <!-- Stocks -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Azioni</h3>
+                    <div id="stocks-list" class="space-y-4 max-h-60 overflow-y-auto">
+                        <!-- Stocks will be populated here -->
+                    </div>
+                </div>
+                <!-- Currencies -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Valute</h3>
+                    <div id="currencies-list" class="space-y-4 max-h-60 overflow-y-auto">
+                        <!-- Currencies will be populated here -->
+                    </div>
+                </div>
+                <!-- Bonds -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Obbligazioni</h3>
+                    <div id="bonds-list" class="space-y-4 max-h-60 overflow-y-auto">
+                        <!-- Bonds will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Controls Section -->
+        <div id="game-controls" class="section-card flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <button id="next-month-btn" class="btn bg-green-600 text-white hover:bg-green-700 w-full sm:w-auto">Passa al Mese Successivo</button>
+            <button id="skip-months-btn" class="btn bg-blue-600 text-white hover:bg-blue-700 w-full sm:w-auto">Salta 12 Mesi</button>
+            <button id="skip-years-btn" class="btn bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto">Salta 10 Anni</button>
+            <button id="search-job-btn" class="btn bg-blue-500 text-white hover:bg-blue-600 flex-1">Cerca Lavoro</button>
+            <button id="career-training-btn" class="btn bg-yellow-500 text-white hover:bg-yellow-600 flex-1">Formazione Professionale</button>
+        </div>
+
+        <!-- Final Message for Winning/Losing -->
+        <div id="final-message" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-100">
+                <h3 id="final-message-title" class="text-3xl font-bold mb-4"></h3>
+                <p id="final-message-text" class="text-xl text-gray-700 mb-6"></p>
+                <button id="restart-btn" class="btn bg-indigo-600 text-white hover:bg-indigo-700 w-full">Ricomincia</button>
+            </div>
+        </div>
+
+        <!-- Message Box -->
+        <div id="message-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="message-content-wrapper">
+                <h3 id="message-title" class="text-2xl font-bold mb-4 text-gray-900">Messaggio</h3>
+                <p id="message-text" class="text-lg text-gray-700 mb-6"></p>
+                <button id="message-ok-btn" class="btn bg-indigo-600 text-white hover:bg-indigo-700 w-full">OK</button>
+            </div>
+        </div>
+
+        <!-- Decision Box -->
+        <div id="decision-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="decision-content-wrapper">
+                <h3 id="decision-title" class="text-2xl font-bold mb-4 text-gray-900">Decisione</h3>
+                <p id="decision-text" class="text-lg text-gray-700 mb-6"></p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="proceed-btn" class="btn bg-green-600 text-white hover:bg-green-700 flex-1">Accetta</button>
+                    <button id="decline-btn" class="btn bg-red-600 text-white hover:bg-red-700 flex-1">Rifiuta</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save/Load List Box -->
+        <div id="save-list-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="save-list-content-wrapper">
+                <h3 id="save-list-title" class="text-2xl font-bold mb-4 text-gray-900">Gestisci Partite Salvate</h3>
+                <div id="save-input-area" class="mb-4 hidden">
+                    <input type="text" id="save-game-name-input" placeholder="Nome per il salvataggio" class="input-field mb-2" />
+                    <button id="confirm-save-btn" class="btn bg-indigo-600 text-white hover:bg-indigo-700 w-full">Salva Partita</button>
+                </div>
+                <div id="saved-games-list" class="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-2 mb-4">
+                    <!-- Saved games will be listed here -->
+                    <p id="no-saved-games-message" class="text-gray-500 text-center py-4">Nessuna partita salvata.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="show-save-input-btn" class="btn bg-green-600 text-white hover:bg-green-700 flex-1">Salva una nuova partita</button>
+                    <button id="close-save-list-btn" class="btn bg-gray-400 text-gray-800 hover:bg-gray-500 flex-1">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Game State Variables
+        let playerMoney = 1000; // Starting money (in EUR)
+        let playerAge = 18; // Starting age
+        let playerTraining = 0; // New: Player's training level
+        let currentDate = new Date(2025, 0, 1); // January 1, 2025
+        let currentJob = null; // No job initially
+        let monthsAtCurrentJob = 0; // New: Tracks months spent in the current job
+        let proposedJob = null; // Stores the job offered during a decision prompt
+        let playerStartups = []; // Array to store all active startups
+        let consecutiveTaxDeficitMonths = 0; // Tracks consecutive months with insufficient funds for taxes
+        let unpaiedTaxDebt = 0;
+        const BILLION_TARGET = 1000000000000; // 1 Billion EUR
+        const LOCAL_STORAGE_PREFIX = 'billionaireGameSave_'; // Prefix for saved games in local storage
+
+        // Constants for market volatility and failures
+        const ASSET_FAILURE_CHANCE = 0.03; // 3% chance per month for an asset to fail
+        const ASSET_REBIRTH_CHANCE = 0.10; // 10% chance per month for a failed asset to revive
+        const ASSET_DELISTING_THRESHOLD = 3; // Number of months a failed asset stays before delisting chance
+        const ASSET_DELISTING_CHANCE = 0.20; // 20% chance of delisting after threshold
+        const JOB_EVENT_CHANCE = 0.15; // 15% chance of a job-related event each month
+        const MAX_TAX_DEFICIT_MONTHS = 8; // Max consecutive months with unpaied taxes
+
+        // Data for Jobs, Stocks, and Currencies
+        const jobs = [
+            { title: "Disoccupato", salary: 0, trainingRequired: 0 },
+            { title: "Lavoratore di fattoria", salary: 400, trainingRequired: 0 },
+            { title: "Aiutante cuoco", salary: 500, trainingRequired: 0 },
+            { title: "Commesso", salary: 700, trainingRequired: 0 },
+            { title: "Operatore di call center", salary: 900, trainingRequired: 1 },
+            { title: "Cassiere di banca", salary: 1500, trainingRequired: 1 },
+            { title: "Sviluppatore software junior", salary: 2500, trainingRequired: 2 },
+            { title: "Analista finanziario junior", salary: 3000, trainingRequired: 3 },
+            { title: "Marketing Specialist", salary: 3500, trainingRequired: 4 },
+            { title: "Sviluppatore software senior", salary: 5000, trainingRequired: 5 },
+            { title: "Project Manager", salary: 6000, trainingRequired: 6 },
+            { title: "Data Scientist", salary: 8000, trainingRequired: 7 },
+            { title: "Consulente finanziario senior", salary: 10000, trainingRequired: 8 },
+            { title: "Direttore delle vendite", salary: 15000, trainingRequired: 9 },
+            { title: "Chief Technology Officer (CTO)", salary: 25000, trainingRequired: 10 },
+            { title: "Direttore finanziario (CFO)", salary: 35000, trainingRequired: 11 },
+            { title: "Amministratore Delegato (CEO)", salary: 50000, trainingRequired: 12 }
+        ];
+
+        let stocks = [ {
+            name: "EcoEnergy",
+            value: 45,
+            volatility: 0.25,
+            previousValue: 45
+        }, {
+            name: "FoodChain",
+            value: 90,
+            volatility: 0.05,
+            previousValue: 90
+        }, ];
+
+        let currencies = [{
+            name: "Euro",
+            value: 1,
+            volatility: 0.04,
+            previousValue: 1.5
+        }, {
+            name: "Dollaro USA",
+            value: 1.08,
+            volatility: 0.05,
+            previousValue: 1.08
+        }, {
+            name: "Yen giapponese",
+            value: 0.0068,
+            volatility: 0.07,
+            previousValue: 0.0068
+        }, ];
+
+        const bonds = [{
+            name: "Bund tedesco",
+            value: 500,
+            interestRate: 0.015,
+            duration: 6
+        }, {
+            name: "Bund Positivo",
+            value: 1000,
+            interestRate: 1.000,
+            duration: 6
+        }, ];
+
+        const allPossibleStocks = [{
+            name: "TechCorp",
+            value: 50,
+            volatility: 0.15,
+            previousValue: 50
+        }, {
+            name: "GlobalMotors",
+            value: 80,
+            volatility: 0.10,
+            previousValue: 80
+        }, {
+            name: "HealthInnovations",
+            value: 120,
+            volatility: 0.20,
+            previousValue: 120
+        },{
+            name: "BTP Italia",
+            value: 100,
+            interestRate: 0.02,
+            duration: 12
+        }, {
+            name: "T-Bond USA",
+            value: 1000,
+            interestRate: 0.03,
+            duration: 24
+        }, {
+            name: "Cybernetics Inc.",
+            value: 200,
+            volatility: 0.3
+        }, {
+            name: "Aqua Pure Solutions",
+            value: 70,
+            volatility: 0.18
+        }, {
+            name: "SpaceXplore",
+            value: 500,
+            volatility: 0.4
+        }];
+
+        const allPossibleCurrencies = [{
+            name: "Dollaro canadese",
+            value: 0.74,
+            volatility: 0.06
+        }, {
+            name: "Sterlina britannica",
+            value: 1.17,
+            volatility: 0.04,
+            previousValue: 1.17
+        }, {
+            name: "Franco svizzero",
+            value: 1.02,
+            volatility: 0.03,
+            previousValue: 1.02
+        }, {
+            name: "Dollaro australiano",
+            value: 0.66,
+            volatility: 0.07
+        }];
+
+        // Game Elements
+        const moneyEl = document.getElementById('money');
+        const netWorthEl = document.getElementById('net-worth');
+        const ageEl = document.getElementById('age');
+        const dateEl = document.getElementById('date');
+        const jobTitleEl = document.getElementById('job-title');
+        const jobSalaryEl = document.getElementById('job-salary');
+        const monthsAtJobEl = document.getElementById('months-at-job');
+        const trainingLevelEl = document.getElementById('training-level');
+        const monthlyReportEl = document.getElementById('monthly-report-text');
+        const finalMessageEl = document.getElementById('final-message');
+        const finalMessageTitleEl = document.getElementById('final-message-title');
+        const finalMessageTextEl = document.getElementById('final-message-text');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Buttons
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const searchJobBtn = document.getElementById('search-job-btn');
+        const careerTrainingBtn = document.getElementById('career-training-btn');
+        const skipYearsBtn = document.getElementById('skip-years-btn');
+        const skipMonthsBtn = document.getElementById('skip-months-btn');
+
+        // Investment UI
+        const stocksListEl = document.getElementById('stocks-list');
+        const currenciesListEl = document.getElementById('currencies-list');
+        const bondsListEl = document.getElementById('bonds-list');
+        const startupStocksListEl = document.getElementById('startup-stocks-list');
+
+        // Message Box Elements
+        const messageBox = document.getElementById('message-box');
+        const messageTitleEl = document.getElementById('message-title');
+        const messageTextEl = document.getElementById('message-text');
+        const messageOkBtn = document.getElementById('message-ok-btn');
+
+        // Decision Box Elements
+        const decisionBox = document.getElementById('decision-box');
+        const decisionTitleEl = document.getElementById('decision-title');
+        const decisionTextEl = document.getElementById('decision-text');
+        const proceedBtn = document.getElementById('proceed-btn');
+        const declineBtn = document.getElementById('decline-btn');
+
+        // Startup UI elements
+        const startupHeader = document.getElementById('startup-header');
+        const startupContent = document.getElementById('startup-content');
+        const startupArrow = document.getElementById('startup-arrow');
+        const buyStartupBtn = document.getElementById('buy-startup-btn');
+        const sellStartupBtn = document.getElementById('sell-startup-btn');
+        const startupMoneyEl = document.getElementById('startup-money');
+        const startupCostEl = document.getElementById('startup-cost');
+        const startupListEl = document.getElementById('startup-list');
+
+        // Save/Load UI elements
+        const saveListBox = document.getElementById('save-list-box');
+        const saveListTitle = document.getElementById('save-list-title');
+        const saveInputArea = document.getElementById('save-input-area');
+        const saveGameNameInput = document.getElementById('save-game-name-input');
+        const confirmSaveBtn = document.getElementById('confirm-save-btn');
+        const savedGamesList = document.getElementById('saved-games-list');
+        const noSavedGamesMessage = document.getElementById('no-saved-games-message');
+        const closeSaveListBtn = document.getElementById('close-save-list-btn');
+        const showSaveInputBtn = document.getElementById('show-save-input-btn');
+
+        // Game State Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('it-IT', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(amount);
+        }
+
+        function calculateNetWorth() {
+            let totalValue = playerMoney + unpaiedTaxDebt;
+
+            // Add value of stocks
+            stocks.forEach(stock => {
+                totalValue += (stock.owned || 0) * stock.value;
+            });
+
+            // Add value of currencies
+            currencies.forEach(currency => {
+                if (currency.name !== "Euro") {
+                    totalValue += (currency.owned || 0) * currency.value;
+                }
+            });
+
+            // Add value of bonds
+            bonds.forEach(bond => {
+                totalValue += (bond.owned || 0) * bond.value;
+            });
+
+            // Add value of startups (based on current share value)
+            totalValue += playerStartups.reduce((sum, s) => sum + ((s.sharesOwned || 0) * s.shareValue), 0);
+
+            return totalValue;
+        }
+
+        function updateUI() {
+            const netWorth = calculateNetWorth();
+            netWorthEl.textContent = formatCurrency(netWorth);
+            moneyEl.textContent = formatCurrency(playerMoney);
+            ageEl.textContent = playerAge;
+            trainingLevelEl.textContent = playerTraining;
+            dateEl.textContent = currentDate.toLocaleDateString('it-IT', {
+                year: 'numeric',
+                month: 'long'
+            });
+            jobTitleEl.textContent = currentJob ? currentJob.title : "Disoccupato";
+            jobSalaryEl.textContent = currentJob ? formatCurrency(currentJob.salary) : "N/A";
+            monthsAtJobEl.textContent = monthsAtCurrentJob;
+
+            updateInvestmentUI();
+            updateStartupUI();
+        }
+
+        function updateInvestmentUI() {
+            stocksListEl.innerHTML = '';
+            stocks.forEach(stock => {
+                if (stock.isDelisted) return;
+
+                const priceChangeClass = stock.value > stock.previousValue ? 'price-up' : (stock.value < stock.previousValue ? 'price-down' : 'price-neutral');
+                const valueDisplay = stock.isFailed ? 'Fallito' : `€${stock.value.toFixed(2)}`;
+
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">${stock.name}</h4>
+                    <span class="text-lg font-bold ${priceChangeClass}">${valueDisplay}</span>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-stock-${stock.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyAsset('stock', '${stock.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellAsset('stock', '${stock.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                ${(stock.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${stock.owned}</p>` : ''}
+            `;
+                stocksListEl.appendChild(item);
+            });
+
+            currenciesListEl.innerHTML = '';
+            currencies.forEach(currency => {
+                if (currency.isDelisted) return;
+
+                const priceChangeClass = currency.value > currency.previousValue ? 'price-up' : (currency.value < currency.previousValue ? 'price-down' : 'price-neutral');
+                const valueDisplay = currency.isFailed ? 'Fallita' : `€${currency.value.toFixed(4)}`;
+
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">${currency.name}</h4>
+                    <span class="text-lg font-bold ${priceChangeClass}">${valueDisplay}</span>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-currency-${currency.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyAsset('currency', '${currency.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellAsset('currency', '${currency.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                ${(currency.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${currency.owned.toFixed(2)}</p>` : ''}
+            `;
+                currenciesListEl.appendChild(item);
+            });
+
+            bondsListEl.innerHTML = '';
+            bonds.forEach(bond => {
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">${bond.name}</h4>
+                    <span class="text-lg font-bold">€${bond.value.toFixed(2)}</span>
+                </div>
+                <p class="text-sm text-gray-600">Interesse: ${(bond.interestRate * 100).toFixed(1)}%</p>
+                <p class="text-sm text-gray-600">Durata: ${bond.duration} mesi</p>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-bond-${bond.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyAsset('bond', '${bond.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellAsset('bond', '${bond.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                ${(bond.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${bond.owned} (restano ${bond.monthsLeft || 0} mesi)</p>` : ''}
+            `;
+                bondsListEl.appendChild(item);
+            });
+            
+            startupStocksListEl.innerHTML = '';
+            playerStartups.forEach((startup, index) => {
+                const priceChangeClass = startup.shareValue > startup.previousShareValue ? 'price-up' : (startup.shareValue < startup.previousShareValue ? 'price-down' : 'price-neutral');
+                
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">Azione Startup #${index + 1}</h4>
+                    <span class="text-lg font-bold ${priceChangeClass}">€${(startup.shareValue).toFixed(2)}</span>
+                </div>
+                <p class="text-sm text-gray-600">Prodotto: ${startup.productName}</p>
+                <p class="text-sm text-gray-600">Possedute: ${startup.sharesOwned || 0}</p>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-startup-stock-${index}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyStartupShares(${index})" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellStartupShares(${index})" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                `;
+                startupStocksListEl.appendChild(item);
+            });
+        }
+
+        function updateStartupUI() {
+            const totalStartupMoney = playerStartups.reduce((sum, s) => sum + s.money, 0);
+            startupMoneyEl.textContent = formatCurrency(totalStartupMoney);
+
+            let startupCost = 0;
+            if (playerStartups.length === 0) {
+                startupCost = 10000;
+            } else {
+                startupCost = playerStartups.length * 5000 + 10000;
+            }
+            startupCostEl.textContent = formatCurrency(startupCost);
+
+            startupListEl.innerHTML = '';
+            if (playerStartups.length === 0) {
+                startupListEl.innerHTML = `<li class="text-gray-500">Nessuna startup avviata.</li>`;
+            } else {
+                playerStartups.forEach((startup, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Startup #${index + 1} - Denaro: ${formatCurrency(startup.money)} - Prodotto: ${startup.productName}`;
+                    startupListEl.appendChild(listItem);
+                });
+            }
+        }
+
+        // Core Game Loop Functions
+        function nextMonth() {
+            // Check win condition
+            if (calculateNetWorth() >= BILLION_TARGET) {
+                endGame(true);
+                return;
+            }
+
+            // Pay taxes and expenses
+            const monthlyTax = calculateMonthlyTax();
+            const startupCosts = calculateStartupCosts();
+            let totalExpenses = monthlyTax + startupCosts;
+            if (playerMoney < totalExpenses) {
+                consecutiveTaxDeficitMonths++;
+                unpaiedTaxDebt += totalExpenses * 1.20; // 20% increase
+                if (consecutiveTaxDeficitMonths >= MAX_TAX_DEFICIT_MONTHS) {
+                    endGame(false, "Hai accumulato un deficit fiscale per più di 8 mesi consecutivi e sei stato dichiarato in bancarotta. Game Over!");
+                    return;
+                }
+            } else {
+                if (unpaiedTaxDebt > 0) {
+                    const taxPayment = Math.min(unpaiedTaxDebt, playerMoney);
+                    playerMoney -= taxPayment;
+                    unpaiedTaxDebt -= taxPayment;
+                    if (unpaiedTaxDebt <= 0) {
+                        consecutiveTaxDeficitMonths = 0;
+                        showMessage("Tasse Saldate", "Hai pagato il tuo debito fiscale accumulato. Ben fatto!");
+                    } else {
+                        showMessage("Pagamento Tasse Parziale", `Hai pagato parte del tuo debito fiscale. Ne rimangono ${formatCurrency(unpaiedTaxDebt)}.`);
+                    }
+                } else {
+                    playerMoney -= totalExpenses;
+                    consecutiveTaxDeficitMonths = 0;
+                }
+            }
+
+
+            // Check for job event (loss or gain)
+            if (Math.random() < JOB_EVENT_CHANCE) {
+                if (currentJob) {
+                    currentJob = null;
+                    monthsAtCurrentJob = 0;
+                    showMessage("Licenziamento Imprevisto", "Oh no! Hai perso il tuo lavoro a causa di tagli aziendali.");
+                } else {
+                    searchNewJobOffer();
+                }
+            } else if (currentJob) {
+                // Receive salary
+                playerMoney += currentJob.salary;
+                monthsAtCurrentJob++;
+            }
+
+            // Update investments and startups
+            updateInvestments();
+            updateStartups();
+
+            // Check for random events
+            handleRandomEvents();
+
+            // Update stats
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            if (currentDate.getMonth() === 0) {
+                playerAge++;
+                if (playerAge >= 60) {
+                    endGame(false, "Hai raggiunto i 60 anni e ti sei ritirato. Game Over!");
+                    return;
+                }
+            }
+
+            // Update UI
+            updateUI();
+            generateMonthlyAdvice();
+        }
+
+        function skipMonths() {
+            for (let i = 0; i < 12; i++) {
+                nextMonth();
+            }
+            showMessage("12 Mesi Saltati", "Hai saltato un anno di gioco. Vediamo come te la sei cavata!");
+        }
+
+        function skipYears() {
+            for (let i = 0; i < 120; i++) {
+                nextMonth();
+            }
+            showMessage("10 Anni Saltati", "Hai saltato un decennio della tua vita! Molte cose sono cambiate.");
+        }
+
+        // Job and Career Functions
+        function searchNewJobOffer() {
+            const availableJobs = jobs.filter(job => job.trainingRequired <= playerTraining);
+            if (availableJobs.length > 1) {
+                const newJob = availableJobs[Math.floor(Math.random() * (availableJobs.length - 1)) + 1]; // Exclude 'Unemployed'
+                proposedJob = newJob;
+                showDecisionPrompt("Offerta di Lavoro", `Ti è stato offerto un lavoro come ${newJob.title} con uno stipendio di ${formatCurrency(newJob.salary)} al mese. Accetti?`, () => {
+                    currentJob = proposedJob;
+                    monthsAtCurrentJob = 0;
+                    showMessage("Offerta Accettata", `Ora lavori come ${currentJob.title}. Buona fortuna!`);
+                    updateUI();
+                }, () => {
+                    showMessage("Offerta Rifiutata", "Hai rifiutato l'offerta. La ricerca continua.");
+                });
+            } else {
+                showMessage("Nessuna Offerta", "Non ci sono nuove offerte di lavoro disponibili in questo momento.");
+            }
+        }
+
+        function careerTraining() {
+            const trainingCost = 2000 + playerTraining * 100;
+            if (playerMoney >= trainingCost) {
+                playerMoney -= trainingCost;
+                playerTraining++;
+                showMessage("Formazione Professionale", `Hai completato un corso di formazione professionale, spendendo ${formatCurrency(trainingCost)}. Il tuo livello di formazione è aumentato a ${playerTraining}.`);
+                updateUI();
+            } else {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per permetterti la formazione professionale.");
+            }
+        }
+
+        // Investment Functions
+        function buyAsset(type, name) {
+            let asset;
+            let inputId;
+            let currentAssetList;
+            if (type === 'stock') {
+                asset = stocks.find(s => s.name === name);
+                inputId = `buy-stock-${name}`;
+                currentAssetList = stocks;
+            } else if (type === 'currency') {
+                asset = currencies.find(c => c.name === name);
+                inputId = `buy-currency-${name}`;
+                currentAssetList = currencies;
+            } else if (type === 'bond') {
+                asset = bonds.find(b => b.name === name);
+                inputId = `buy-bond-${name}`;
+                currentAssetList = bonds;
+            }
+
+            const quantity = parseInt(document.getElementById(inputId).value);
+
+            if (isNaN(quantity) || quantity <= 0) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida.");
+                return;
+            }
+            if (asset.isFailed) {
+                 showMessage("Errore", `Non puoi acquistare un asset fallito.`);
+                return;
+            }
+
+            const cost = quantity * asset.value;
+            if (playerMoney >= cost) {
+                playerMoney -= cost;
+                const existingAsset = currentAssetList.find(a => a.name === name);
+                if (existingAsset) {
+                    existingAsset.owned = (existingAsset.owned || 0) + quantity;
+                    if (type === 'bond') {
+                        existingAsset.monthsLeft = existingAsset.duration;
+                    }
+                }
+                showMessage("Acquisto Riuscito", `Hai acquistato ${quantity} di ${asset.name} per ${formatCurrency(cost)}.`);
+                updateUI();
+            } else {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per questo acquisto.");
+            }
+        }
+
+        function sellAsset(type, name) {
+            let asset;
+            let inputId;
+            let currentAssetList;
+            if (type === 'stock') {
+                asset = stocks.find(s => s.name === name);
+                inputId = `buy-stock-${name}`;
+                currentAssetList = stocks;
+            } else if (type === 'currency') {
+                asset = currencies.find(c => c.name === name);
+                inputId = `buy-currency-${name}`;
+                currentAssetList = currencies;
+            } else if (type === 'bond') {
+                asset = bonds.find(b => b.name === name);
+                inputId = `buy-bond-${name}`;
+                currentAssetList = bonds;
+            }
+
+            const quantityToSell = parseInt(document.getElementById(inputId).value);
+
+            if (isNaN(quantityToSell) || quantityToSell <= 0 || (asset.owned || 0) < quantityToSell) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida da vendere.");
+                return;
+            }
+
+            let revenue = quantityToSell * asset.value;
+            playerMoney += revenue;
+            asset.owned = (asset.owned || 0) - quantityToSell;
+
+            if (type === 'bond') {
+                // If bond is sold early, you don't get the face value back, just the value at the time of sale.
+                // For simplicity, we assume value is always the same.
+                // The interest is already paid monthly, so no extra payment here.
+            }
+            
+            showMessage("Vendita Riuscita", `Hai venduto ${quantityToSell} di ${asset.name} per ${formatCurrency(revenue)}.`);
+            updateUI();
+        }
+
+        function buyStartupShares(index) {
+            const startup = playerStartups[index];
+            if (!startup) {
+                showMessage("Errore", "Startup non trovata.");
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById(`buy-startup-stock-${index}`).value);
+            if (isNaN(quantity) || quantity <= 0) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida.");
+                return;
+            }
+            
+            const shareValue = startup.shareValue;
+            const cost = quantity * shareValue;
+            
+            if (playerMoney < cost) {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per acquistare queste azioni.");
+                return;
+            }
+
+            playerMoney -= cost;
+            startup.sharesOwned = (startup.sharesOwned || 0) + quantity;
+            showMessage("Acquisto Riuscito", `Hai acquistato ${quantity} azioni della tua startup per ${formatCurrency(cost)}.`);
+            updateUI();
+        }
+
+        function sellStartupShares(index) {
+            const startup = playerStartups[index];
+            if (!startup) {
+                showMessage("Errore", "Startup non trovata.");
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById(`buy-startup-stock-${index}`).value);
+            if (isNaN(quantity) || quantity <= 0 || (startup.sharesOwned || 0) < quantity) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida da vendere.");
+                return;
+            }
+
+            const shareValue = startup.shareValue;
+            const revenue = quantity * shareValue;
+            
+            playerMoney += revenue;
+            startup.sharesOwned = startup.sharesOwned - quantity;
+            showMessage("Vendita Riuscita", `Hai venduto ${quantity} azioni della tua startup per ${formatCurrency(revenue)}.`);
+            updateUI();
+        }
+
+        function updateInvestments() {
+            // Function to add new random assets
+            function addNewAssets() {
+                if (stocks.length < 5 && Math.random() < 0.5) {
+                    const newStock = allPossibleStocks[Math.floor(Math.random() * allPossibleStocks.length)];
+                    if (!stocks.find(s => s.name === newStock.name)) {
+                        stocks.push({ ...newStock, previousValue: newStock.value });
+                        showMessage("Nuova Azione Disponibile", `La società ${newStock.name} è stata quotata in borsa!`);
+                    }
+                }
+                if (currencies.length < 5 && Math.random() < 0.5) {
+                    const newCurrency = allPossibleCurrencies[Math.floor(Math.random() * allPossibleCurrencies.length)];
+                    if (!currencies.find(c => c.name === newCurrency.name)) {
+                        currencies.push({ ...newCurrency, previousValue: newCurrency.value });
+                        showMessage("Nuova Valuta Disponibile", `La valuta ${newCurrency.name} è ora scambiabile!`);
+                    }
+                }
+            }
+
+            // Update stocks
+            for (let i = stocks.length - 1; i >= 0; i--) {
+                const stock = stocks[i];
+                stock.previousValue = stock.value;
+                if (stock.isFailed) {
+                    if (Math.random() < ASSET_REBIRTH_CHANCE) {
+                        stock.isFailed = false;
+                        stock.failedMonths = 0;
+                        stock.value = Math.random() * 50 + 1; // Give it a new low value
+                        showMessage("Rinascita Azionaria", `La società ${stock.name} si è ripresa e ha ricominciato a operare!`);
+                    } else if (stock.failedMonths >= ASSET_DELISTING_THRESHOLD && Math.random() < ASSET_DELISTING_CHANCE) {
+                        stocks.splice(i, 1);
+                        showMessage("Delisting", `L'azione ${stock.name} è stata delistata dal mercato. Le tue azioni sono ora senza valore.`);
+                    } else {
+                        stock.failedMonths = (stock.failedMonths || 0) + 1;
+                    }
+                } else {
+                    const change = (Math.random() * stock.volatility * 2 - stock.volatility) * stock.value;
+                    stock.value = Math.max(1, stock.value + change);
+                    if (Math.random() < ASSET_FAILURE_CHANCE) {
+                        stock.isFailed = true;
+                        stock.value = 0.01; // Sinks to almost zero
+                        stock.failedMonths = 0;
+                        showMessage("Crollo del Mercato", `L'azione ${stock.name} ha fallito! Il suo valore è sceso a quasi zero.`);
+                    }
+                }
+            }
+
+            // Update currencies
+            for (let i = currencies.length - 1; i >= 0; i--) {
+                const currency = currencies[i];
+                if (currency.volatility === 0) continue; // Skip Euro
+                currency.previousValue = currency.value;
+
+                if (currency.isFailed) {
+                    if (Math.random() < ASSET_REBIRTH_CHANCE) {
+                        currency.isFailed = false;
+                        currency.failedMonths = 0;
+                        currency.value = Math.random() * 1.5 + 0.5; // Give it a new low value
+                        showMessage("Rinascita Valutaria", `La valuta ${currency.name} si è stabilizzata e ha ripreso valore!`);
+                    } else if (currency.failedMonths >= ASSET_DELISTING_THRESHOLD && Math.random() < ASSET_DELISTING_CHANCE) {
+                        currencies.splice(i, 1);
+                        showMessage("Ritiro della Valuta", `La valuta ${currency.name} è stata ritirata dal mercato. Le tue scorte non hanno più valore.`);
+                    } else {
+                        currency.failedMonths = (currency.failedMonths || 0) + 1;
+                    }
+                } else {
+                    const change = (Math.random() * currency.volatility * 2 - currency.volatility) * currency.value;
+                    currency.value = Math.max(0.001, currency.value + change);
+                    if (Math.random() < ASSET_FAILURE_CHANCE) {
+                        currency.isFailed = true;
+                        currency.value = 0.0001; // Sinks to almost zero
+                        currency.failedMonths = 0;
+                        showMessage("Crollo della Valuta", `La valuta ${currency.name} ha subito un crollo catastrofico! Il suo valore è sceso a quasi zero.`);
+                    }
+                }
+            }
+
+            // Update bonds
+            bonds.forEach(bond => {
+                if (bond.owned && bond.owned > 0) {
+                    if (bond.monthsLeft > 0) {
+                        const monthlyInterest = bond.owned * bond.value * (bond.interestRate / 12);
+                        playerMoney += monthlyInterest;
+                        bond.monthsLeft--;
+                    } else {
+                        // Bond matured
+                        const totalReturn = bond.owned * bond.value;
+                        playerMoney += totalReturn; // Return of the face value
+                        bond.owned = 0;
+                        showMessage("Obbligazione Maturata", `La tua obbligazione ${bond.name} è maturata! Hai ricevuto indietro il valore nominale di ${formatCurrency(totalReturn)}.`);
+                        updateUI();
+                    }
+                }
+            });
+
+            addNewAssets();
+        }
+
+        // Startup Functions
+        function buyStartup() {
+            let startupCost = 0;
+            if (playerStartups.length === 0) {
+                startupCost = 10000;
+            } else {
+                startupCost = playerStartups.length * 5000 + 10000;
+            }
+
+            if (playerMoney >= startupCost) {
+                playerMoney -= startupCost;
+                playerStartups.push({
+                    money: 5000,
+                    productName: `Prodotto #${playerStartups.length + 1}`,
+                    totalShares: 10000, // Fixed number of shares for all startups
+                    sharesOwned: 10000, // You start by owning all shares
+                    shareValue: 0.5, // Initial share value
+                    previousShareValue: 0.5
+                });
+                showMessage("Startup Avviata", `Hai avviato una nuova startup per ${formatCurrency(startupCost)}.`);
+                updateUI();
+            } else {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per avviare una startup.");
+            }
+        }
+
+        function sellStartup() {
+            if (playerStartups.length > 0) {
+                const lastStartup = playerStartups.pop();
+                const profit = lastStartup.money * (1 + Math.random() * 0.5); // 0-50% profit
+                playerMoney += profit;
+                showMessage("Startup Venduta", `Hai venduto la tua ultima startup per un ricavo di ${formatCurrency(profit)}.`);
+                updateUI();
+            } else {
+                showMessage("Nessuna Startup", "Non hai startup da vendere.");
+            }
+        }
+
+        function updateStartups() {
+            playerStartups.forEach(startup => {
+                // Simulate startup performance
+                const revenue = Math.random() * 2000;
+                startup.money += revenue;
+
+                // Update share value based on total money and a bit of random volatility
+                startup.previousShareValue = startup.shareValue;
+                const volatility = 0.2; // 20% volatility for startup shares
+                const change = (Math.random() * volatility * 2 - volatility) * startup.shareValue;
+                startup.shareValue = Math.max(0.01, startup.shareValue + change);
+            });
+        }
+
+        // Financial Functions
+        function calculateMonthlyTax() {
+            const taxFixed = 300;
+            let taxPercentage;
+
+            if (playerMoney <= 5000) {
+                taxPercentage = 0.25;
+            } else if (playerMoney <= 50000) {
+                taxPercentage = 0.35;
+            } else if (playerMoney <= 100000) {
+                taxPercentage = 0.50;
+            } else {
+                taxPercentage = 0.75;
+            }
+            
+            let taxAmount = taxFixed + (playerMoney * taxPercentage);
+            return taxAmount;
+        }
+
+        function calculateStartupCosts() {
+            // Simplified costs
+            return playerStartups.length * 1000;
+        }
+
+        // Game Over Functions
+        function endGame(isWin, message = "") {
+            finalMessageEl.classList.remove('hidden');
+            if (isWin) {
+                finalMessageTitleEl.textContent = "Congratulazioni, Sei un Bilionario!";
+                finalMessageTextEl.textContent = "Hai raggiunto il tuo obiettivo di €1 Bilione. Hai avuto successo nella vita!";
+            } else {
+                finalMessageTitleEl.textContent = "Game Over";
+                finalMessageTextEl.textContent = message;
+            }
+            nextMonthBtn.disabled = true;
+            careerTrainingBtn.disabled = true;
+            skipYearsBtn.disabled = true;
+            skipMonthsBtn.disabled = true;
+            buyStartupBtn.disabled = true;
+            sellStartupBtn.disabled = true;
+        }
+
+        function restartGame() {
+            playerMoney = 1000;
+            playerAge = 18;
+            playerTraining = 0;
+            currentDate = new Date(2025, 0, 1);
+            currentJob = null;
+            monthsAtCurrentJob = 0;
+            proposedJob = null;
+            playerStartups = [];
+            unpaiedTaxDebt = 0;
+            consecutiveTaxDeficitMonths = 0;
+
+            stocks = [{
+                name: "TechCorp",
+                value: 50,
+                volatility: 0.15,
+                previousValue: 50
+            }, {
+                name: "GlobalMotors",
+                value: 80,
+                volatility: 0.10,
+                previousValue: 80
+            }, {
+                name: "HealthInnovations",
+                value: 120,
+                volatility: 0.20,
+                previousValue: 120
+            }, {
+                name: "EcoEnergy",
+                value: 45,
+                volatility: 0.25,
+                previousValue: 45
+            }, {
+                name: "FoodChain",
+                value: 90,
+                volatility: 0.05,
+                previousValue: 90
+            }, ];
+
+            currencies = [{
+                name: "Euro",
+                value: 1,
+                volatility: 0
+            }, {
+                name: "Dollaro USA",
+                value: 1.08,
+                volatility: 0.05,
+                previousValue: 1.08
+            }, {
+                name: "Yen giapponese",
+                value: 0.0068,
+                volatility: 0.07,
+                previousValue: 0.0068
+            }, {
+                name: "Sterlina britannica",
+                value: 1.17,
+                volatility: 0.04,
+                previousValue: 1.17
+            }, {
+                name: "Franco svizzero",
+                value: 1.02,
+                volatility: 0.03,
+                previousValue: 1.02
+            }, ];
+
+            bonds.forEach(b => {
+                b.owned = 0;
+                b.monthsLeft = b.duration;
+            });
+
+            finalMessageEl.classList.add('hidden');
+            nextMonthBtn.disabled = false;
+            careerTrainingBtn.disabled = false;
+            skipYearsBtn.disabled = false;
+            skipMonthsBtn.disabled = false;
+            buyStartupBtn.disabled = false;
+            sellStartupBtn.disabled = false;
+
+            updateUI();
+            generateMonthlyAdvice();
+        }
+
+        // UI Helpers (Message Boxes)
+        function showMessage(title, message) {
+            messageBox.classList.remove('hidden');
+            messageBox.querySelector('#message-content-wrapper').classList.remove('opacity-0', 'scale-95');
+            messageBox.querySelector('#message-content-wrapper').classList.add('opacity-100', 'scale-100');
+            messageTitleEl.textContent = title;
+            messageTextEl.textContent = message;
+        }
+
+        function showDecisionPrompt(title, message, onProceed, onDecline) {
+            decisionBox.classList.remove('hidden');
+            decisionBox.querySelector('#decision-content-wrapper').classList.remove('opacity-0', 'scale-95');
+            decisionBox.querySelector('#decision-content-wrapper').classList.add('opacity-100', 'scale-100');
+            decisionTitleEl.textContent = title;
+            decisionTextEl.textContent = message;
+
+            const handleProceed = () => {
+                onProceed();
+                hideDecisionPrompt();
+                proceedBtn.removeEventListener('click', handleProceed);
+                declineBtn.removeEventListener('click', handleDecline);
+            };
+
+            const handleDecline = () => {
+                onDecline();
+                hideDecisionPrompt();
+                proceedBtn.removeEventListener('click', handleProceed);
+                declineBtn.removeEventListener('click', handleDecline);
+            };
+
+            proceedBtn.addEventListener('click', handleProceed);
+            declineBtn.addEventListener('click', handleDecline);
+        }
+
+        function hideDecisionPrompt() {
+            decisionBox.classList.add('hidden');
+            decisionBox.querySelector('#decision-content-wrapper').classList.remove('opacity-100', 'scale-100');
+            decisionBox.querySelector('#decision-content-wrapper').classList.add('opacity-0', 'scale-95');
+        }
+
+        function hideMessageBox() {
+            messageBox.classList.add('hidden');
+            messageBox.querySelector('#message-content-wrapper').classList.remove('opacity-100', 'scale-100');
+            messageBox.querySelector('#message-content-wrapper').classList.add('opacity-0', 'scale-95');
+        }
+
+        // Save/Load Game Functions
+        function saveGame(saveName) {
+            const gameState = {
+                playerMoney,
+                playerAge,
+                playerTraining,
+                currentDate: currentDate.getTime(),
+                currentJob,
+                monthsAtCurrentJob,
+                playerStartups,
+                consecutiveTaxDeficitMonths,
+                unpaiedTaxDebt,
+                stocks: stocks.map(s => ({ ...s
+                })),
+                currencies: currencies.map(c => ({ ...c
+                })),
+                bonds: bonds.map(b => ({ ...b
+                })),
+            };
+            localStorage.setItem(LOCAL_STORAGE_PREFIX + saveName, JSON.stringify(gameState));
+            showMessage("Partita Salvata", `La partita è stata salvata come "${saveName}".`);
+            hideSaveLoadPrompt();
+        }
+
+        function loadGame(saveName) {
+            const savedState = localStorage.getItem(LOCAL_STORAGE_PREFIX + saveName);
+            if (savedState) {
+                const gameState = JSON.parse(savedState);
+                playerMoney = gameState.playerMoney;
+                playerAge = gameState.playerAge;
+                playerTraining = gameState.playerTraining;
+                currentDate = new Date(gameState.currentDate);
+                currentJob = gameState.currentJob;
+                monthsAtCurrentJob = gameState.monthsAtCurrentJob;
+                playerStartups = gameState.playerStartups;
+                consecutiveTaxDeficitMonths = gameState.consecutiveTaxDeficitMonths;
+                unpaiedTaxDebt = gameState.unpaiedTaxDebt;
+                stocks.length = 0;
+                stocks.push(...gameState.stocks);
+                currencies.length = 0;
+                currencies.push(...gameState.currencies);
+                bonds.length = 0;
+                bonds.push(...gameState.bonds);
+                showMessage("Partita Caricata", `"${saveName}" è stata caricata con successo!`);
+                updateUI();
+                hideSaveLoadPrompt();
+            } else {
+                showMessage("Errore", "Salvataggio non trovato.");
+            }
+        }
+
+        function showSaveLoadPrompt(mode) {
+            saveListBox.classList.remove('hidden');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.remove('opacity-0', 'scale-95');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.add('opacity-100', 'scale-100');
+
+            if (mode === 'save') {
+                saveListTitle.textContent = "Salva Partita";
+                saveInputArea.classList.remove('hidden');
+                showSaveInputBtn.classList.add('hidden');
+            } else {
+                saveListTitle.textContent = "Carica Partita";
+                saveInputArea.classList.add('hidden');
+                showSaveInputBtn.classList.remove('hidden');
+            }
+
+            savedGamesList.innerHTML = '';
+            const savedGameKeys = Object.keys(localStorage).filter(key => key.startsWith(LOCAL_STORAGE_PREFIX));
+
+            if (savedGameKeys.length === 0) {
+                noSavedGamesMessage.classList.remove('hidden');
+            } else {
+                noSavedGamesMessage.classList.add('hidden');
+                savedGameKeys.forEach(key => {
+                    const saveName = key.substring(LOCAL_STORAGE_PREFIX.length);
+                    const listItem = document.createElement('div');
+                    listItem.className = 'flex items-center justify-between p-2 my-1 bg-gray-100 rounded-lg border border-gray-200';
+                    listItem.innerHTML = `
+                        <span class="font-medium text-gray-800">${saveName}</span>
+                        <div class="flex gap-2">
+                            ${mode === 'load' ? `<button class="btn bg-blue-500 text-white hover:bg-blue-600 text-sm py-1 px-3" onclick="loadGame('${saveName}')">Carica</button>` : ''}
+                            <button class="btn bg-red-500 text-white hover:bg-red-600 text-sm py-1 px-3" onclick="deleteSave('${saveName}')">Cancella</button>
+                        </div>
+                    `;
+                    savedGamesList.appendChild(listItem);
+                });
+            }
+        }
+
+        function hideSaveLoadPrompt() {
+            saveListBox.classList.add('hidden');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.remove('opacity-100', 'scale-100');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.add('opacity-0', 'scale-95');
+        }
+
+        function deleteSave(saveName) {
+            if (confirm(`Sei sicuro di voler cancellare il salvataggio "${saveName}"?`)) {
+                localStorage.removeItem(LOCAL_STORAGE_PREFIX + saveName);
+                showSaveLoadPrompt(saveInputArea.classList.contains('hidden') ? 'load' : 'save'); // Refresh list
+            }
+        }
+
+        // Random Events
+        function handleRandomEvents() {
+            if (Math.random() < 0.15) { // 15% chance of a random event
+                const eventType = Math.random();
+                if (eventType < 0.5) {
+                    // Good event: unexpected bonus
+                    const bonus = playerMoney * (Math.random() * 0.1 + 0.05); // 5-15% bonus
+                    playerMoney += bonus;
+                    showMessage("Evento Fortunato!", `Hai ricevuto un bonus inaspettato di ${formatCurrency(bonus)}!`);
+                } else {
+                    // Bad event: unexpected expense
+                    const expense = playerMoney * (Math.random() * 0.1 + 0.05); // 5-15% expense
+                    playerMoney -= expense;
+                    showMessage("Evento Sfortunato!", `Hai dovuto pagare una spesa imprevista di ${formatCurrency(expense)}.`);
+                }
+            }
+        }
+
+        // Monthly Advice
+        function generateMonthlyAdvice() {
+            let advice = "Continua a lavorare sodo e a investire saggiamente per raggiungere i tuoi obiettivi.";
+            const netWorth = calculateNetWorth();
+            if (netWorth < 5000) {
+                advice = "I tuoi fondi sono limitati. Concentrati sulla stabilità lavorativa prima di rischiare in investimenti.";
+            } else if (netWorth < 50000) {
+                advice = "Stai costruendo una base solida. Valuta l'acquisto di alcune azioni per diversificare i tuoi guadagni.";
+            } else if (netWorth < 1000000) {
+                advice = "Sei sulla buona strada per diventare un milionario! È il momento di pensare a investimenti più aggressivi o a un'azienda in proprio.";
+            } else if (netWorth >= 1000000 && netWorth < BILLION_TARGET * 0.1) {
+                advice = "Sei ufficialmente un milionario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
+            } else if (netWorth >= BILLION_TARGET * 0.1) {
+                advice = "Le tue fortune sono immense. Le tue decisioni potrebbero influenzare interi mercati. Punta a investimenti su larga scala o a una startup rivoluzionaria.";
+            }
+            monthlyReportEl.textContent = advice;
+        }
+
+        // --- Event Listeners and Initialization ---
+        function setupEventListeners() {
+            nextMonthBtn.addEventListener('click', nextMonth);
+            restartBtn.addEventListener('click', restartGame);
+            messageOkBtn.addEventListener('click', hideMessageBox);
+            buyStartupBtn.addEventListener('click', buyStartup);
+            sellStartupBtn.addEventListener('click', sellStartup);
+            const saveListBtn = document.getElementById('save-list-btn');
+            if (saveListBtn) saveListBtn.addEventListener('click', () => showSaveLoadPrompt('save'));
+            const loadListBtn = document.getElementById('load-list-btn');
+            if (loadListBtn) loadListBtn.addEventListener('click', () => showSaveLoadPrompt('load'));
+            closeSaveListBtn.addEventListener('click', hideSaveLoadPrompt);
+            showSaveInputBtn.addEventListener('click', () => {
+                saveInputArea.classList.remove('hidden');
+                showSaveInputBtn.classList.add('hidden');
+            });
+            confirmSaveBtn.addEventListener('click', () => {
+                const saveName = saveGameNameInput.value.trim();
+                if (saveName) {
+                    saveGame(saveName);
+                } else {
+                    showMessage("Nome non valido", "Per favore, inserisci un nome per il salvataggio.");
+                }
+            });
+
+            skipYearsBtn.addEventListener('click', skipYears);
+            skipMonthsBtn.addEventListener('click', skipMonths);
+            searchJobBtn.addEventListener('click', searchNewJobOffer);
+            careerTrainingBtn.addEventListener('click', careerTraining);
+
+            // Toggle Startup section visibility
+            startupHeader.addEventListener('click', () => {
+                startupContent.classList.toggle('hidden');
+                startupArrow.classList.toggle('rotated');
+            });
+        }
+
+        // --- Game Initialization ---
+        function initGame() {
+            generateMonthlyAdvice();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Initialize the game when the window loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
+
+<!-- oppure questo:
+ <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore di Vita da Miliardario (Euro Edition)</title>
+    <!-- Tailwind CSS CDN 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 1600px; /* Even wider container */
+            width: 100%;
+            height: 90vh; /* Taller container */
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .section-card {
+            background-color: #f9fafb;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            flex-shrink: 0; /* Prevents shrinking */
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .input-field {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 12px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Message box specific styles */
+        #message-box, #decision-box, #save-list-box {
+            z-index: 1000;
+            pointer-events: none;
+        }
+        #message-content-wrapper, #decision-content-wrapper, #save-list-content-wrapper {
+            pointer-events: all;
+        }
+        .rotated {
+            transform: rotate(180deg);
+        }
+        .price-up {
+            color: #10B981; /* green-500 */
+        }
+        .price-down {
+            color: #EF4444; /* red-500 */
+        }
+        .price-neutral {
+            color: #6B7280; /* gray-500 */
+        }
+        #investments-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem; /* Equivalent to gap-6 */
+        }
+        @media (max-width: 1024px) {
+            #investments-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            #investments-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter">
+    <div id="game-container" class="mx-auto my-10 p-8 bg-white rounded-2xl shadow-xl">
+        <h1 class="text-4xl font-extrabold text-center mb-8 text-indigo-700">Simulatore di Vita da Miliardario</h1>
+
+        <!-- Stats Section
+        <div id="stats" class="section-card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Le Tue Statistiche</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 text-lg text-gray-700">
+                <p>Patrimonio: <span id="net-worth" class="font-semibold text-green-600">€1,000.00</span></p>
+                <p>Denaro: <span id="money" class="font-semibold text-green-600">€1,000.00</span></p>
+                <p>Età: <span id="age" class="font-semibold text-gray-800">18</span></p>
+                <p>Data: <span id="date" class="font-semibold text-gray-800">Gennaio 2025</span></p>
+                <p>Lavoro: <span id="job-title" class="font-semibold text-gray-800">Disoccupato</span></p>
+                <p>Formazione: <span id="training-level" class="font-semibold text-gray-800">0</span></p>
+            </div>
+        </div>
+
+        <!-- Career Section
+        <div id="career" class="section-card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Carriera</h2>
+            <div class="space-y-4">
+                <div id="current-job-info" class="text-gray-700">
+                    <p class="text-lg">Stipendio: <span id="job-salary" class="font-semibold text-green-600">N/A</span></p>
+                    <p class="text-lg">Mesi al lavoro: <span id="months-at-job" class="font-semibold">0</span></p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="search-job-btn" class="btn bg-blue-500 text-white hover:bg-blue-600 flex-1">Cerca Lavoro</button>
+                    <button id="career-training-btn" class="btn bg-yellow-500 text-white hover:bg-yellow-600 flex-1">Formazione Professionale</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Startup Section (Collapsible) 
+        <div id="startup-section" class="section-card">
+            <div id="startup-header" class="flex justify-between items-center cursor-pointer">
+                <h2 class="text-2xl font-bold text-gray-800">Le Tue Startup</h2>
+                <svg id="startup-arrow" class="w-6 h-6 text-gray-600 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            <div id="startup-content" class="hidden mt-4 space-y-4">
+                <p class="text-lg text-gray-700">Denaro: <span id="startup-money" class="font-semibold text-green-600">€0.00</span></p>
+                <p class="text-lg text-gray-700">Costo: <span id="startup-cost" class="font-semibold text-red-600">€0.00</span></p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="buy-startup-btn" class="btn bg-purple-600 text-white hover:bg-purple-700 flex-1">Avvia una Startup</button>
+                    <button id="sell-startup-btn" class="btn bg-red-600 text-white hover:bg-red-700 flex-1">Vendi Startup</button>
+                </div>
+                <div id="startup-details" class="mt-4">
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Dettagli Startup:</h3>
+                    <ul id="startup-list" class="list-disc pl-5 text-gray-700">
+                        <!-- Startup list will be populated here 
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Section 
+        <div id="investments" class="section-card flex-grow overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Investimenti</h2>
+            <div id="investments-container">
+                <!-- Startup Stocks -
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Azioni Startup</h3>
+                    <div id="startup-stocks-list" class="space-y-4">
+                        <!-- Startup stocks will be populated here -->
+                    </div>
+                </div>
+                <!-- Stocks -
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Azioni</h3>
+                    <div id="stocks-list" class="space-y-4">
+                        <!-- Stocks will be populated here -->
+                    </div>
+                </div>
+                <!-- Currencies --
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Valute</h3>
+                    <div id="currencies-list" class="space-y-4">
+                        <!-- Currencies will be populated here -->
+                    </div>
+                </div>
+                <!-- Bonds --
+                <div>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-800">Obbligazioni</h3>
+                    <div id="bonds-list" class="space-y-4">
+                        <!-- Bonds will be populated here --
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Controls Section --
+        <div id="game-controls" class="section-card flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <button id="next-month-btn" class="btn bg-green-600 text-white hover:bg-green-700 w-full sm:w-auto">Passa al Mese Successivo</button>
+            <button id="skip-months-btn" class="btn bg-blue-600 text-white hover:bg-blue-700 w-full sm:w-auto">Salta 12 Mesi</button>
+            <button id="skip-years-btn" class="btn bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto">Salta 10 Anni</button>
+        </div>
+
+        <!-- Monthly Report/News Section --
+        <div id="monthly-report" class="section-card">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">Rapporto Mensile</h2>
+            <p id="monthly-report-text" class="text-lg text-gray-700 italic text-center">Inizia una nuova partita per vedere il tuo primo rapporto.</p>
+        </div>
+
+        <!-- Final Message for Winning/Losing --
+        <div id="final-message" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-100">
+                <h3 id="final-message-title" class="text-3xl font-bold mb-4"></h3>
+                <p id="final-message-text" class="text-xl text-gray-700 mb-6"></p>
+                <button id="restart-btn" class="btn bg-indigo-600 text-white hover:bg-indigo-700 w-full">Ricomincia</button>
+            </div>
+        </div>
+    
+        <!-- Message Box --
+        <div id="message-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="message-content-wrapper">
+                <h3 id="message-title" class="text-2xl font-bold mb-4 text-gray-900">Messaggio</h3>
+                <p id="message-text" class="text-lg text-gray-700 mb-6"></p>
+                <button id="message-ok-btn" class="btn bg-indigo-600 text-white hover:bg-indigo-700 w-full">OK</button>
+            </div>
+        </div>
+
+        <!-- Decision Box --
+        <div id="decision-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="decision-content-wrapper">
+                <h3 id="decision-title" class="text-2xl font-bold mb-4 text-gray-900">Decisione</h3>
+                <p id="decision-text" class="text-lg text-gray-700 mb-6"></p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="proceed-btn" class="btn bg-green-600 text-white hover:bg-green-700 flex-1">Accetta</button>
+                    <button id="decline-btn" class="btn bg-red-600 text-white hover:bg-red-700 flex-1">Rifiuta</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save/Load List Box --
+        <div id="save-list-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 scale-95 opacity-0" id="save-list-content-wrapper">
+                <h3 id="save-list-title" class="text-2xl font-bold mb-4 text-gray-900">Gestisci Partite Salvate</h3>
+                <div id="save-input-area" class="mb-4 hidden">
+                    <input type="text" id="save-game-name-input" placeholder="Nome per il salvataggio" class="input-field mb-2" />
+                    <button id="confirm-save-btn" class="btn bg-indigo-600 text-white hover:bg-indigo-700 w-full">Salva Partita</button>
+                </div>
+                <div id="saved-games-list" class="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-2 mb-4">
+                    <!-- Saved games will be listed here --
+                    <p id="no-saved-games-message" class="text-gray-500 text-center py-4">Nessuna partita salvata.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="show-save-input-btn" class="btn bg-green-600 text-white hover:bg-green-700 flex-1">Salva una nuova partita</button>
+                    <button id="close-save-list-btn" class="btn bg-gray-400 text-gray-800 hover:bg-gray-500 flex-1">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Game State Variables
+        let playerMoney = 1000; // Starting money (in EUR)
+        let playerAge = 18; // Starting age
+        let playerTraining = 0; // New: Player's training level
+        let currentDate = new Date(2025, 0, 1); // January 1, 2025
+        let currentJob = null; // No job initially
+        let monthsAtCurrentJob = 0; // New: Tracks months spent in the current job
+        let proposedJob = null; // Stores the job offered during a decision prompt
+        let playerStartups = []; // Array to store all active startups
+        let consecutiveTaxDeficitMonths = 0; // Tracks consecutive months with insufficient funds for taxes
+        let unpaiedTaxDebt = 0;
+        const BILLION_TARGET = 1000000000; // 1 Billion EUR
+        const LOCAL_STORAGE_PREFIX = 'billionaireGameSave_'; // Prefix for saved games in local storage
+
+        // Constants for market volatility and failures
+        const ASSET_FAILURE_CHANCE = 0.03; // 3% chance per month for an asset to fail
+        const ASSET_REBIRTH_CHANCE = 0.10; // 10% chance per month for a failed asset to revive
+        const ASSET_DELISTING_THRESHOLD = 3; // Number of months a failed asset stays before delisting chance
+        const ASSET_DELISTING_CHANCE = 0.20; // 20% chance of delisting after threshold
+        const JOB_EVENT_CHANCE = 0.15; // 15% chance of a job-related event each month
+        const MAX_TAX_DEFICIT_MONTHS = 8; // Max consecutive months with unpaied taxes
+
+        // Data for Jobs, Stocks, and Currencies
+        const jobs = [
+            { title: "Disoccupato", salary: 0, trainingRequired: 0 },
+            { title: "Lavoratore di fattoria", salary: 400, trainingRequired: 0 },
+            { title: "Aiutante cuoco", salary: 500, trainingRequired: 0 },
+            { title: "Commesso", salary: 700, trainingRequired: 0 },
+            { title: "Operatore di call center", salary: 900, trainingRequired: 1 },
+            { title: "Cassiere di banca", salary: 1500, trainingRequired: 1 },
+            { title: "Sviluppatore software junior", salary: 2500, trainingRequired: 2 },
+            { title: "Analista finanziario junior", salary: 3000, trainingRequired: 3 },
+            { title: "Marketing Specialist", salary: 3500, trainingRequired: 4 },
+            { title: "Sviluppatore software senior", salary: 5000, trainingRequired: 5 },
+            { title: "Project Manager", salary: 6000, trainingRequired: 6 },
+            { title: "Data Scientist", salary: 8000, trainingRequired: 7 },
+            { title: "Consulente finanziario senior", salary: 10000, trainingRequired: 8 },
+            { title: "Direttore delle vendite", salary: 15000, trainingRequired: 9 },
+            { title: "Chief Technology Officer (CTO)", salary: 25000, trainingRequired: 10 },
+            { title: "Direttore finanziario (CFO)", salary: 35000, trainingRequired: 11 },
+            { title: "Amministratore Delegato (CEO)", salary: 50000, trainingRequired: 12 }
+        ];
+
+        let stocks = [{
+            name: "TechCorp",
+            value: 50,
+            volatility: 0.15,
+            previousValue: 50
+        }, {
+            name: "GlobalMotors",
+            value: 80,
+            volatility: 0.10,
+            previousValue: 80
+        }, {
+            name: "HealthInnovations",
+            value: 120,
+            volatility: 0.20,
+            previousValue: 120
+        }, {
+            name: "EcoEnergy",
+            value: 45,
+            volatility: 0.25,
+            previousValue: 45
+        }, {
+            name: "FoodChain",
+            value: 90,
+            volatility: 0.05,
+            previousValue: 90
+        }, ];
+
+        let currencies = [{
+            name: "Euro",
+            value: 1,
+            volatility: 0
+        }, {
+            name: "Dollaro USA",
+            value: 1.08,
+            volatility: 0.05,
+            previousValue: 1.08
+        }, {
+            name: "Yen giapponese",
+            value: 0.0068,
+            volatility: 0.07,
+            previousValue: 0.0068
+        }, {
+            name: "Sterlina britannica",
+            value: 1.17,
+            volatility: 0.04,
+            previousValue: 1.17
+        }, {
+            name: "Franco svizzero",
+            value: 1.02,
+            volatility: 0.03,
+            previousValue: 1.02
+        }, ];
+
+        const bonds = [{
+            name: "BTP Italia",
+            value: 100,
+            interestRate: 0.02,
+            duration: 12
+        }, {
+            name: "T-Bond USA",
+            value: 1000,
+            interestRate: 0.03,
+            duration: 24
+        }, {
+            name: "Bund tedesco",
+            value: 500,
+            interestRate: 0.015,
+            duration: 6
+        }, ];
+
+        const allPossibleStocks = [{
+            name: "Cybernetics Inc.",
+            value: 200,
+            volatility: 0.3
+        }, {
+            name: "Aqua Pure Solutions",
+            value: 70,
+            volatility: 0.18
+        }, {
+            name: "SpaceXplore",
+            value: 500,
+            volatility: 0.4
+        }];
+
+        const allPossibleCurrencies = [{
+            name: "Dollaro canadese",
+            value: 0.74,
+            volatility: 0.06
+        }, {
+            name: "Dollaro australiano",
+            value: 0.66,
+            volatility: 0.07
+        }];
+
+        // Game Elements
+        const moneyEl = document.getElementById('money');
+        const netWorthEl = document.getElementById('net-worth');
+        const ageEl = document.getElementById('age');
+        const dateEl = document.getElementById('date');
+        const jobTitleEl = document.getElementById('job-title');
+        const jobSalaryEl = document.getElementById('job-salary');
+        const monthsAtJobEl = document.getElementById('months-at-job');
+        const trainingLevelEl = document.getElementById('training-level');
+        const monthlyReportEl = document.getElementById('monthly-report-text');
+        const finalMessageEl = document.getElementById('final-message');
+        const finalMessageTitleEl = document.getElementById('final-message-title');
+        const finalMessageTextEl = document.getElementById('final-message-text');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Buttons
+        const nextMonthBtn = document.getElementById('next-month-btn');
+        const searchJobBtn = document.getElementById('search-job-btn');
+        const careerTrainingBtn = document.getElementById('career-training-btn');
+        const skipYearsBtn = document.getElementById('skip-years-btn');
+        const skipMonthsBtn = document.getElementById('skip-months-btn');
+
+        // Investment UI
+        const stocksListEl = document.getElementById('stocks-list');
+        const currenciesListEl = document.getElementById('currencies-list');
+        const bondsListEl = document.getElementById('bonds-list');
+        const startupStocksListEl = document.getElementById('startup-stocks-list');
+
+        // Message Box Elements
+        const messageBox = document.getElementById('message-box');
+        const messageTitleEl = document.getElementById('message-title');
+        const messageTextEl = document.getElementById('message-text');
+        const messageOkBtn = document.getElementById('message-ok-btn');
+
+        // Decision Box Elements
+        const decisionBox = document.getElementById('decision-box');
+        const decisionTitleEl = document.getElementById('decision-title');
+        const decisionTextEl = document.getElementById('decision-text');
+        const proceedBtn = document.getElementById('proceed-btn');
+        const declineBtn = document.getElementById('decline-btn');
+
+        // Startup UI elements
+        const startupHeader = document.getElementById('startup-header');
+        const startupContent = document.getElementById('startup-content');
+        const startupArrow = document.getElementById('startup-arrow');
+        const buyStartupBtn = document.getElementById('buy-startup-btn');
+        const sellStartupBtn = document.getElementById('sell-startup-btn');
+        const startupMoneyEl = document.getElementById('startup-money');
+        const startupCostEl = document.getElementById('startup-cost');
+        const startupListEl = document.getElementById('startup-list');
+
+        // Save/Load UI elements
+        const saveListBox = document.getElementById('save-list-box');
+        const saveListTitle = document.getElementById('save-list-title');
+        const saveInputArea = document.getElementById('save-input-area');
+        const saveGameNameInput = document.getElementById('save-game-name-input');
+        const confirmSaveBtn = document.getElementById('confirm-save-btn');
+        const savedGamesList = document.getElementById('saved-games-list');
+        const noSavedGamesMessage = document.getElementById('no-saved-games-message');
+        const closeSaveListBtn = document.getElementById('close-save-list-btn');
+        const showSaveInputBtn = document.getElementById('show-save-input-btn');
+
+        // Game State Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('it-IT', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(amount);
+        }
+
+        function calculateNetWorth() {
+            let totalValue = playerMoney + unpaiedTaxDebt;
+
+            // Add value of stocks
+            stocks.forEach(stock => {
+                totalValue += (stock.owned || 0) * stock.value;
+            });
+
+            // Add value of currencies
+            currencies.forEach(currency => {
+                if (currency.name !== "Euro") {
+                    totalValue += (currency.owned || 0) * currency.value;
+                }
+            });
+
+            // Add value of bonds
+            bonds.forEach(bond => {
+                totalValue += (bond.owned || 0) * bond.value;
+            });
+
+            // Add value of startups (based on current share value)
+            totalValue += playerStartups.reduce((sum, s) => sum + ((s.sharesOwned || 0) * s.shareValue), 0);
+
+            return totalValue;
+        }
+
+        function updateUI() {
+            const netWorth = calculateNetWorth();
+            netWorthEl.textContent = formatCurrency(netWorth);
+            moneyEl.textContent = formatCurrency(playerMoney);
+            ageEl.textContent = playerAge;
+            trainingLevelEl.textContent = playerTraining;
+            dateEl.textContent = currentDate.toLocaleDateString('it-IT', {
+                year: 'numeric',
+                month: 'long'
+            });
+            jobTitleEl.textContent = currentJob ? currentJob.title : "Disoccupato";
+            jobSalaryEl.textContent = currentJob ? formatCurrency(currentJob.salary) : "N/A";
+            monthsAtJobEl.textContent = monthsAtCurrentJob;
+
+            updateInvestmentUI();
+            updateStartupUI();
+        }
+
+        function updateInvestmentUI() {
+            stocksListEl.innerHTML = '';
+            stocks.forEach(stock => {
+                if (stock.isDelisted) return;
+
+                const priceChangeClass = stock.value > stock.previousValue ? 'price-up' : (stock.value < stock.previousValue ? 'price-down' : 'price-neutral');
+                const valueDisplay = stock.isFailed ? 'Fallito' : `€${stock.value.toFixed(2)}`;
+
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">${stock.name}</h4>
+                    <span class="text-lg font-bold ${priceChangeClass}">${valueDisplay}</span>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-stock-${stock.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyAsset('stock', '${stock.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellAsset('stock', '${stock.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                ${(stock.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${stock.owned}</p>` : ''}
+            `;
+                stocksListEl.appendChild(item);
+            });
+
+            currenciesListEl.innerHTML = '';
+            currencies.forEach(currency => {
+                if (currency.isDelisted) return;
+
+                const priceChangeClass = currency.value > currency.previousValue ? 'price-up' : (currency.value < currency.previousValue ? 'price-down' : 'price-neutral');
+                const valueDisplay = currency.isFailed ? 'Fallita' : `€${currency.value.toFixed(4)}`;
+
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">${currency.name}</h4>
+                    <span class="text-lg font-bold ${priceChangeClass}">${valueDisplay}</span>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-currency-${currency.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyAsset('currency', '${currency.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellAsset('currency', '${currency.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                ${(currency.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${currency.owned.toFixed(2)}</p>` : ''}
+            `;
+                currenciesListEl.appendChild(item);
+            });
+
+            bondsListEl.innerHTML = '';
+            bonds.forEach(bond => {
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">${bond.name}</h4>
+                    <span class="text-lg font-bold">€${bond.value.toFixed(2)}</span>
+                </div>
+                <p class="text-sm text-gray-600">Interesse: ${(bond.interestRate * 100).toFixed(1)}%</p>
+                <p class="text-sm text-gray-600">Durata: ${bond.duration} mesi</p>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-bond-${bond.name}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyAsset('bond', '${bond.name}')" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellAsset('bond', '${bond.name}')" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                ${(bond.owned || 0) > 0 ? `<p class="text-sm text-gray-600 mt-2">Possedute: ${bond.owned} (restano ${bond.monthsLeft || 0} mesi)</p>` : ''}
+            `;
+                bondsListEl.appendChild(item);
+            });
+            
+            startupStocksListEl.innerHTML = '';
+            playerStartups.forEach((startup, index) => {
+                const priceChangeClass = startup.shareValue > startup.previousShareValue ? 'price-up' : (startup.shareValue < startup.previousShareValue ? 'price-down' : 'price-neutral');
+                
+                const item = document.createElement('div');
+                item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                item.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xl font-semibold">Azione Startup #${index + 1}</h4>
+                    <span class="text-lg font-bold ${priceChangeClass}">€${(startup.shareValue).toFixed(2)}</span>
+                </div>
+                <p class="text-sm text-gray-600">Prodotto: ${startup.productName}</p>
+                <p class="text-sm text-gray-600">Possedute: ${startup.sharesOwned || 0}</p>
+                <div class="flex gap-2 mt-2">
+                    <input type="number" id="buy-startup-stock-${index}" placeholder="Qty" class="input-field text-sm w-1/2" />
+                    <button onclick="buyStartupShares(${index})" class="btn bg-green-500 text-white hover:bg-green-600 text-sm flex-1">Acquista</button>
+                    <button onclick="sellStartupShares(${index})" class="btn bg-red-500 text-white hover:bg-red-600 text-sm flex-1">Vendi</button>
+                </div>
+                `;
+                startupStocksListEl.appendChild(item);
+            });
+        }
+
+        function updateStartupUI() {
+            const totalStartupMoney = playerStartups.reduce((sum, s) => sum + s.money, 0);
+            startupMoneyEl.textContent = formatCurrency(totalStartupMoney);
+
+            let startupCost = 0;
+            if (playerStartups.length === 0) {
+                startupCost = 10000;
+            } else {
+                startupCost = playerStartups.length * 5000 + 10000;
+            }
+            startupCostEl.textContent = formatCurrency(startupCost);
+
+            startupListEl.innerHTML = '';
+            if (playerStartups.length === 0) {
+                startupListEl.innerHTML = `<li class="text-gray-500">Nessuna startup avviata.</li>`;
+            } else {
+                playerStartups.forEach((startup, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Startup #${index + 1} - Denaro: ${formatCurrency(startup.money)} - Prodotto: ${startup.productName}`;
+                    startupListEl.appendChild(listItem);
+                });
+            }
+        }
+
+        // Core Game Loop Functions
+        function nextMonth() {
+            // Check win condition
+            if (calculateNetWorth() >= BILLION_TARGET) {
+                endGame(true);
+                return;
+            }
+
+            // Pay taxes and expenses
+            const monthlyTax = calculateMonthlyTax();
+            const startupCosts = calculateStartupCosts();
+            let totalExpenses = monthlyTax + startupCosts;
+            if (playerMoney < totalExpenses) {
+                consecutiveTaxDeficitMonths++;
+                unpaiedTaxDebt += totalExpenses * 1.20; // 20% increase
+                if (consecutiveTaxDeficitMonths >= MAX_TAX_DEFICIT_MONTHS) {
+                    endGame(false, "Hai accumulato un deficit fiscale per più di 8 mesi consecutivi e sei stato dichiarato in bancarotta. Game Over!");
+                    return;
+                }
+            } else {
+                if (unpaiedTaxDebt > 0) {
+                    const taxPayment = Math.min(unpaiedTaxDebt, playerMoney);
+                    playerMoney -= taxPayment;
+                    unpaiedTaxDebt -= taxPayment;
+                    if (unpaiedTaxDebt <= 0) {
+                        consecutiveTaxDeficitMonths = 0;
+                        showMessage("Tasse Saldate", "Hai pagato il tuo debito fiscale accumulato. Ben fatto!");
+                    } else {
+                        showMessage("Pagamento Tasse Parziale", `Hai pagato parte del tuo debito fiscale. Ne rimangono ${formatCurrency(unpaiedTaxDebt)}.`);
+                    }
+                } else {
+                    playerMoney -= totalExpenses;
+                    consecutiveTaxDeficitMonths = 0;
+                }
+            }
+
+
+            // Check for job event (loss or gain)
+            if (Math.random() < JOB_EVENT_CHANCE) {
+                if (currentJob) {
+                    currentJob = null;
+                    monthsAtCurrentJob = 0;
+                    showMessage("Licenziamento Imprevisto", "Oh no! Hai perso il tuo lavoro a causa di tagli aziendali.");
+                } else {
+                    searchNewJobOffer();
+                }
+            } else if (currentJob) {
+                // Receive salary
+                playerMoney += currentJob.salary;
+                monthsAtCurrentJob++;
+            }
+
+            // Update investments and startups
+            updateInvestments();
+            updateStartups();
+
+            // Check for random events
+            handleRandomEvents();
+
+            // Update stats
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            if (currentDate.getMonth() === 0) {
+                playerAge++;
+                if (playerAge >= 60) {
+                    endGame(false, "Hai raggiunto i 60 anni e ti sei ritirato. Game Over!");
+                    return;
+                }
+            }
+
+            // Update UI
+            updateUI();
+            generateMonthlyAdvice();
+        }
+
+        function skipMonths() {
+            for (let i = 0; i < 12; i++) {
+                nextMonth();
+            }
+            showMessage("12 Mesi Saltati", "Hai saltato un anno di gioco. Vediamo come te la sei cavata!");
+        }
+
+        function skipYears() {
+            for (let i = 0; i < 120; i++) {
+                nextMonth();
+            }
+            showMessage("10 Anni Saltati", "Hai saltato un decennio della tua vita! Molte cose sono cambiate.");
+        }
+
+        // Job and Career Functions
+        function searchNewJobOffer() {
+            const availableJobs = jobs.filter(job => job.trainingRequired <= playerTraining);
+            if (availableJobs.length > 1) {
+                const newJob = availableJobs[Math.floor(Math.random() * (availableJobs.length - 1)) + 1]; // Exclude 'Unemployed'
+                proposedJob = newJob;
+                showDecisionPrompt("Offerta di Lavoro", `Ti è stato offerto un lavoro come ${newJob.title} con uno stipendio di ${formatCurrency(newJob.salary)} al mese. Accetti?`, () => {
+                    currentJob = proposedJob;
+                    monthsAtCurrentJob = 0;
+                    showMessage("Offerta Accettata", `Ora lavori come ${currentJob.title}. Buona fortuna!`);
+                    updateUI();
+                }, () => {
+                    showMessage("Offerta Rifiutata", "Hai rifiutato l'offerta. La ricerca continua.");
+                });
+            } else {
+                showMessage("Nessuna Offerta", "Non ci sono nuove offerte di lavoro disponibili in questo momento.");
+            }
+        }
+
+        function careerTraining() {
+            const trainingCost = 2000 + playerTraining * 100;
+            if (playerMoney >= trainingCost) {
+                playerMoney -= trainingCost;
+                playerTraining++;
+                showMessage("Formazione Professionale", `Hai completato un corso di formazione professionale, spendendo ${formatCurrency(trainingCost)}. Il tuo livello di formazione è aumentato a ${playerTraining}.`);
+                updateUI();
+            } else {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per permetterti la formazione professionale.");
+            }
+        }
+
+        // Investment Functions
+        function buyAsset(type, name) {
+            let asset;
+            let inputId;
+            let currentAssetList;
+            if (type === 'stock') {
+                asset = stocks.find(s => s.name === name);
+                inputId = `buy-stock-${name}`;
+                currentAssetList = stocks;
+            } else if (type === 'currency') {
+                asset = currencies.find(c => c.name === name);
+                inputId = `buy-currency-${name}`;
+                currentAssetList = currencies;
+            } else if (type === 'bond') {
+                asset = bonds.find(b => b.name === name);
+                inputId = `buy-bond-${name}`;
+                currentAssetList = bonds;
+            }
+
+            const quantity = parseInt(document.getElementById(inputId).value);
+
+            if (isNaN(quantity) || quantity <= 0) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida.");
+                return;
+            }
+            if (asset.isFailed) {
+                 showMessage("Errore", `Non puoi acquistare un asset fallito.`);
+                return;
+            }
+
+            const cost = quantity * asset.value;
+            if (playerMoney >= cost) {
+                playerMoney -= cost;
+                const existingAsset = currentAssetList.find(a => a.name === name);
+                if (existingAsset) {
+                    existingAsset.owned = (existingAsset.owned || 0) + quantity;
+                    if (type === 'bond') {
+                        existingAsset.monthsLeft = existingAsset.duration;
+                    }
+                }
+                showMessage("Acquisto Riuscito", `Hai acquistato ${quantity} di ${asset.name} per ${formatCurrency(cost)}.`);
+                updateUI();
+            } else {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per questo acquisto.");
+            }
+        }
+
+        function sellAsset(type, name) {
+            let asset;
+            let inputId;
+            let currentAssetList;
+            if (type === 'stock') {
+                asset = stocks.find(s => s.name === name);
+                inputId = `buy-stock-${name}`;
+                currentAssetList = stocks;
+            } else if (type === 'currency') {
+                asset = currencies.find(c => c.name === name);
+                inputId = `buy-currency-${name}`;
+                currentAssetList = currencies;
+            } else if (type === 'bond') {
+                asset = bonds.find(b => b.name === name);
+                inputId = `buy-bond-${name}`;
+                currentAssetList = bonds;
+            }
+
+            const quantityToSell = parseInt(document.getElementById(inputId).value);
+
+            if (isNaN(quantityToSell) || quantityToSell <= 0 || (asset.owned || 0) < quantityToSell) {
+                showMessage("Errore", "Per favor, inserisci una quantità valida da vendere.");
+                return;
+            }
+
+            let revenue = quantityToSell * asset.value;
+            playerMoney += revenue;
+            asset.owned = (asset.owned || 0) - quantityToSell;
+
+            if (type === 'bond') {
+                // If bond is sold early, you don't get the face value back, just the value at the time of sale.
+                // For simplicity, we assume value is always the same.
+                // The interest is already paid monthly, so no extra payment here.
+            }
+            
+            showMessage("Vendita Riuscita", `Hai venduto ${quantityToSell} di ${asset.name} per ${formatCurrency(revenue)}.`);
+            updateUI();
+        }
+
+        function buyStartupShares(index) {
+            const startup = playerStartups[index];
+            if (!startup) {
+                showMessage("Errore", "Startup non trovata.");
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById(`buy-startup-stock-${index}`).value);
+            if (isNaN(quantity) || quantity <= 0) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida.");
+                return;
+            }
+            
+            const shareValue = startup.shareValue;
+            const cost = quantity * shareValue;
+            
+            if (playerMoney < cost) {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per acquistare queste azioni.");
+                return;
+            }
+
+            playerMoney -= cost;
+            startup.sharesOwned = (startup.sharesOwned || 0) + quantity;
+            showMessage("Acquisto Riuscito", `Hai acquistato ${quantity} azioni della tua startup per ${formatCurrency(cost)}.`);
+            updateUI();
+        }
+
+        function sellStartupShares(index) {
+            const startup = playerStartups[index];
+            if (!startup) {
+                showMessage("Errore", "Startup non trovata.");
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById(`buy-startup-stock-${index}`).value);
+            if (isNaN(quantity) || quantity <= 0 || (startup.sharesOwned || 0) < quantity) {
+                showMessage("Errore", "Per favore, inserisci una quantità valida da vendere.");
+                return;
+            }
+
+            const shareValue = startup.shareValue;
+            const revenue = quantity * shareValue;
+            
+            playerMoney += revenue;
+            startup.sharesOwned = startup.sharesOwned - quantity;
+            showMessage("Vendita Riuscita", `Hai venduto ${quantity} azioni della tua startup per ${formatCurrency(revenue)}.`);
+            updateUI();
+        }
+
+        function updateInvestments() {
+            // Function to add new random assets
+            function addNewAssets() {
+                if (stocks.length < 5 && Math.random() < 0.5) {
+                    const newStock = allPossibleStocks[Math.floor(Math.random() * allPossibleStocks.length)];
+                    if (!stocks.find(s => s.name === newStock.name)) {
+                        stocks.push({ ...newStock, previousValue: newStock.value });
+                        showMessage("Nuova Azione Disponibile", `La società ${newStock.name} è stata quotata in borsa!`);
+                    }
+                }
+                if (currencies.length < 5 && Math.random() < 0.5) {
+                    const newCurrency = allPossibleCurrencies[Math.floor(Math.random() * allPossibleCurrencies.length)];
+                    if (!currencies.find(c => c.name === newCurrency.name)) {
+                        currencies.push({ ...newCurrency, previousValue: newCurrency.value });
+                        showMessage("Nuova Valuta Disponibile", `La valuta ${newCurrency.name} è ora scambiabile!`);
+                    }
+                }
+            }
+
+            // Update stocks
+            for (let i = stocks.length - 1; i >= 0; i--) {
+                const stock = stocks[i];
+                stock.previousValue = stock.value;
+                if (stock.isFailed) {
+                    if (Math.random() < ASSET_REBIRTH_CHANCE) {
+                        stock.isFailed = false;
+                        stock.failedMonths = 0;
+                        stock.value = Math.random() * 50 + 1; // Give it a new low value
+                        showMessage("Rinascita Azionaria", `La società ${stock.name} si è ripresa e ha ricominciato a operare!`);
+                    } else if (stock.failedMonths >= ASSET_DELISTING_THRESHOLD && Math.random() < ASSET_DELISTING_CHANCE) {
+                        stocks.splice(i, 1);
+                        showMessage("Delisting", `L'azione ${stock.name} è stata delistata dal mercato. Le tue azioni sono ora senza valore.`);
+                    } else {
+                        stock.failedMonths = (stock.failedMonths || 0) + 1;
+                    }
+                } else {
+                    const change = (Math.random() * stock.volatility * 2 - stock.volatility) * stock.value;
+                    stock.value = Math.max(1, stock.value + change);
+                    if (Math.random() < ASSET_FAILURE_CHANCE) {
+                        stock.isFailed = true;
+                        stock.value = 0.01; // Sinks to almost zero
+                        stock.failedMonths = 0;
+                        showMessage("Crollo del Mercato", `L'azione ${stock.name} ha fallito! Il suo valore è sceso a quasi zero.`);
+                    }
+                }
+            }
+
+            // Update currencies
+            for (let i = currencies.length - 1; i >= 0; i--) {
+                const currency = currencies[i];
+                if (currency.volatility === 0) continue; // Skip Euro
+                currency.previousValue = currency.value;
+
+                if (currency.isFailed) {
+                    if (Math.random() < ASSET_REBIRTH_CHANCE) {
+                        currency.isFailed = false;
+                        currency.failedMonths = 0;
+                        currency.value = Math.random() * 1.5 + 0.5; // Give it a new low value
+                        showMessage("Rinascita Valutaria", `La valuta ${currency.name} si è stabilizzata e ha ripreso valore!`);
+                    } else if (currency.failedMonths >= ASSET_DELISTING_THRESHOLD && Math.random() < ASSET_DELISTING_CHANCE) {
+                        currencies.splice(i, 1);
+                        showMessage("Ritiro della Valuta", `La valuta ${currency.name} è stata ritirata dal mercato. Le tue scorte non hanno più valore.`);
+                    } else {
+                        currency.failedMonths = (currency.failedMonths || 0) + 1;
+                    }
+                } else {
+                    const change = (Math.random() * currency.volatility * 2 - currency.volatility) * currency.value;
+                    currency.value = Math.max(0.001, currency.value + change);
+                    if (Math.random() < ASSET_FAILURE_CHANCE) {
+                        currency.isFailed = true;
+                        currency.value = 0.0001; // Sinks to almost zero
+                        currency.failedMonths = 0;
+                        showMessage("Crollo della Valuta", `La valuta ${currency.name} ha subito un crollo catastrofico! Il suo valore è sceso a quasi zero.`);
+                    }
+                }
+            }
+
+            // Update bonds
+            bonds.forEach(bond => {
+                if (bond.owned && bond.owned > 0) {
+                    if (bond.monthsLeft > 0) {
+                        const monthlyInterest = bond.owned * bond.value * (bond.interestRate / 12);
+                        playerMoney += monthlyInterest;
+                        bond.monthsLeft--;
+                    } else {
+                        // Bond matured
+                        const totalReturn = bond.owned * bond.value;
+                        playerMoney += totalReturn; // Return of the face value
+                        bond.owned = 0;
+                        showMessage("Obbligazione Maturata", `La tua obbligazione ${bond.name} è maturata! Hai ricevuto indietro il valore nominale di ${formatCurrency(totalReturn)}.`);
+                        updateUI();
+                    }
+                }
+            });
+
+            addNewAssets();
+        }
+
+        // Startup Functions
+        function buyStartup() {
+            let startupCost = 0;
+            if (playerStartups.length === 0) {
+                startupCost = 10000;
+            } else {
+                startupCost = playerStartups.length * 5000 + 10000;
+            }
+
+            if (playerMoney >= startupCost) {
+                playerMoney -= startupCost;
+                playerStartups.push({
+                    money: 5000,
+                    productName: `Prodotto #${playerStartups.length + 1}`,
+                    totalShares: 10000, // Fixed number of shares for all startups
+                    sharesOwned: 10000, // You start by owning all shares
+                    shareValue: 0.5, // Initial share value
+                    previousShareValue: 0.5
+                });
+                showMessage("Startup Avviata", `Hai avviato una nuova startup per ${formatCurrency(startupCost)}.`);
+                updateUI();
+            } else {
+                showMessage("Fondi Insufficienti", "Non hai abbastanza soldi per avviare una startup.");
+            }
+        }
+
+        function sellStartup() {
+            if (playerStartups.length > 0) {
+                const lastStartup = playerStartups.pop();
+                const profit = lastStartup.money * (1 + Math.random() * 0.5); // 0-50% profit
+                playerMoney += profit;
+                showMessage("Startup Venduta", `Hai venduto la tua ultima startup per un ricavo di ${formatCurrency(profit)}.`);
+                updateUI();
+            } else {
+                showMessage("Nessuna Startup", "Non hai startup da vendere.");
+            }
+        }
+
+        function updateStartups() {
+            playerStartups.forEach(startup => {
+                // Simulate startup performance
+                const revenue = Math.random() * 2000;
+                startup.money += revenue;
+
+                // Update share value based on total money and a bit of random volatility
+                startup.previousShareValue = startup.shareValue;
+                const volatility = 0.2; // 20% volatility for startup shares
+                const change = (Math.random() * volatility * 2 - volatility) * startup.shareValue;
+                startup.shareValue = Math.max(0.01, startup.shareValue + change);
+            });
+        }
+
+        // Financial Functions
+        function calculateMonthlyTax() {
+            const taxFixed = 300;
+            let taxPercentage;
+
+            if (playerMoney <= 5000) {
+                taxPercentage = 0.25;
+            } else if (playerMoney <= 50000) {
+                taxPercentage = 0.35;
+            } else if (playerMoney <= 100000) {
+                taxPercentage = 0.50;
+            } else {
+                taxPercentage = 0.75;
+            }
+            
+            let taxAmount = taxFixed + (playerMoney * taxPercentage);
+            return taxAmount;
+        }
+
+        function calculateStartupCosts() {
+            // Simplified costs
+            return playerStartups.length * 1000;
+        }
+
+        // Game Over Functions
+        function endGame(isWin, message = "") {
+            finalMessageEl.classList.remove('hidden');
+            if (isWin) {
+                finalMessageTitleEl.textContent = "Congratulazioni, Sei un Miliardario!";
+                finalMessageTextEl.textContent = "Hai raggiunto il tuo obiettivo di €1 miliardo. Hai avuto successo nella vita!";
+            } else {
+                finalMessageTitleEl.textContent = "Game Over";
+                finalMessageTextEl.textContent = message;
+            }
+            nextMonthBtn.disabled = true;
+            careerTrainingBtn.disabled = true;
+            skipYearsBtn.disabled = true;
+            skipMonthsBtn.disabled = true;
+            buyStartupBtn.disabled = true;
+            sellStartupBtn.disabled = true;
+        }
+
+        function restartGame() {
+            playerMoney = 1000;
+            playerAge = 18;
+            playerTraining = 0;
+            currentDate = new Date(2025, 0, 1);
+            currentJob = null;
+            monthsAtCurrentJob = 0;
+            proposedJob = null;
+            playerStartups = [];
+            unpaiedTaxDebt = 0;
+            consecutiveTaxDeficitMonths = 0;
+
+            stocks = [{
+                name: "TechCorp",
+                value: 50,
+                volatility: 0.15,
+                previousValue: 50
+            }, {
+                name: "GlobalMotors",
+                value: 80,
+                volatility: 0.10,
+                previousValue: 80
+            }, {
+                name: "HealthInnovations",
+                value: 120,
+                volatility: 0.20,
+                previousValue: 120
+            }, {
+                name: "EcoEnergy",
+                value: 45,
+                volatility: 0.25,
+                previousValue: 45
+            }, {
+                name: "FoodChain",
+                value: 90,
+                volatility: 0.05,
+                previousValue: 90
+            }, ];
+
+            currencies = [{
+                name: "Euro",
+                value: 1,
+                volatility: 0
+            }, {
+                name: "Dollaro USA",
+                value: 1.08,
+                volatility: 0.05,
+                previousValue: 1.08
+            }, {
+                name: "Yen giapponese",
+                value: 0.0068,
+                volatility: 0.07,
+                previousValue: 0.0068
+            }, {
+                name: "Sterlina britannica",
+                value: 1.17,
+                volatility: 0.04,
+                previousValue: 1.17
+            }, {
+                name: "Franco svizzero",
+                value: 1.02,
+                volatility: 0.03,
+                previousValue: 1.02
+            }, ];
+
+            bonds.forEach(b => {
+                b.owned = 0;
+                b.monthsLeft = b.duration;
+            });
+
+            finalMessageEl.classList.add('hidden');
+            nextMonthBtn.disabled = false;
+            careerTrainingBtn.disabled = false;
+            skipYearsBtn.disabled = false;
+            skipMonthsBtn.disabled = false;
+            buyStartupBtn.disabled = false;
+            sellStartupBtn.disabled = false;
+
+            updateUI();
+            generateMonthlyAdvice();
+        }
+
+        // UI Helpers (Message Boxes)
+        function showMessage(title, message) {
+            messageBox.classList.remove('hidden');
+            messageBox.querySelector('#message-content-wrapper').classList.remove('opacity-0', 'scale-95');
+            messageBox.querySelector('#message-content-wrapper').classList.add('opacity-100', 'scale-100');
+            messageTitleEl.textContent = title;
+            messageTextEl.textContent = message;
+        }
+
+        function showDecisionPrompt(title, message, onProceed, onDecline) {
+            decisionBox.classList.remove('hidden');
+            decisionBox.querySelector('#decision-content-wrapper').classList.remove('opacity-0', 'scale-95');
+            decisionBox.querySelector('#decision-content-wrapper').classList.add('opacity-100', 'scale-100');
+            decisionTitleEl.textContent = title;
+            decisionTextEl.textContent = message;
+
+            const handleProceed = () => {
+                onProceed();
+                hideDecisionPrompt();
+                proceedBtn.removeEventListener('click', handleProceed);
+                declineBtn.removeEventListener('click', handleDecline);
+            };
+
+            const handleDecline = () => {
+                onDecline();
+                hideDecisionPrompt();
+                proceedBtn.removeEventListener('click', handleProceed);
+                declineBtn.removeEventListener('click', handleDecline);
+            };
+
+            proceedBtn.addEventListener('click', handleProceed);
+            declineBtn.addEventListener('click', handleDecline);
+        }
+
+        function hideDecisionPrompt() {
+            decisionBox.classList.add('hidden');
+            decisionBox.querySelector('#decision-content-wrapper').classList.remove('opacity-100', 'scale-100');
+            decisionBox.querySelector('#decision-content-wrapper').classList.add('opacity-0', 'scale-95');
+        }
+
+        function hideMessageBox() {
+            messageBox.classList.add('hidden');
+            messageBox.querySelector('#message-content-wrapper').classList.remove('opacity-100', 'scale-100');
+            messageBox.querySelector('#message-content-wrapper').classList.add('opacity-0', 'scale-95');
+        }
+
+        // Save/Load Game Functions
+        function saveGame(saveName) {
+            const gameState = {
+                playerMoney,
+                playerAge,
+                playerTraining,
+                currentDate: currentDate.getTime(),
+                currentJob,
+                monthsAtCurrentJob,
+                playerStartups,
+                consecutiveTaxDeficitMonths,
+                unpaiedTaxDebt,
+                stocks: stocks.map(s => ({ ...s
+                })),
+                currencies: currencies.map(c => ({ ...c
+                })),
+                bonds: bonds.map(b => ({ ...b
+                })),
+            };
+            localStorage.setItem(LOCAL_STORAGE_PREFIX + saveName, JSON.stringify(gameState));
+            showMessage("Partita Salvata", `La partita è stata salvata come "${saveName}".`);
+            hideSaveLoadPrompt();
+        }
+
+        function loadGame(saveName) {
+            const savedState = localStorage.getItem(LOCAL_STORAGE_PREFIX + saveName);
+            if (savedState) {
+                const gameState = JSON.parse(savedState);
+                playerMoney = gameState.playerMoney;
+                playerAge = gameState.playerAge;
+                playerTraining = gameState.playerTraining;
+                currentDate = new Date(gameState.currentDate);
+                currentJob = gameState.currentJob;
+                monthsAtCurrentJob = gameState.monthsAtCurrentJob;
+                playerStartups = gameState.playerStartups;
+                consecutiveTaxDeficitMonths = gameState.consecutiveTaxDeficitMonths;
+                unpaiedTaxDebt = gameState.unpaiedTaxDebt;
+                stocks.length = 0;
+                stocks.push(...gameState.stocks);
+                currencies.length = 0;
+                currencies.push(...gameState.currencies);
+                bonds.length = 0;
+                bonds.push(...gameState.bonds);
+                showMessage("Partita Caricata", `"${saveName}" è stata caricata con successo!`);
+                updateUI();
+                hideSaveLoadPrompt();
+            } else {
+                showMessage("Errore", "Salvataggio non trovato.");
+            }
+        }
+
+        function showSaveLoadPrompt(mode) {
+            saveListBox.classList.remove('hidden');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.remove('opacity-0', 'scale-95');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.add('opacity-100', 'scale-100');
+
+            if (mode === 'save') {
+                saveListTitle.textContent = "Salva Partita";
+                saveInputArea.classList.remove('hidden');
+                showSaveInputBtn.classList.add('hidden');
+            } else {
+                saveListTitle.textContent = "Carica Partita";
+                saveInputArea.classList.add('hidden');
+                showSaveInputBtn.classList.remove('hidden');
+            }
+
+            savedGamesList.innerHTML = '';
+            const savedGameKeys = Object.keys(localStorage).filter(key => key.startsWith(LOCAL_STORAGE_PREFIX));
+
+            if (savedGameKeys.length === 0) {
+                noSavedGamesMessage.classList.remove('hidden');
+            } else {
+                noSavedGamesMessage.classList.add('hidden');
+                savedGameKeys.forEach(key => {
+                    const saveName = key.substring(LOCAL_STORAGE_PREFIX.length);
+                    const listItem = document.createElement('div');
+                    listItem.className = 'flex items-center justify-between p-2 my-1 bg-gray-100 rounded-lg border border-gray-200';
+                    listItem.innerHTML = `
+                        <span class="font-medium text-gray-800">${saveName}</span>
+                        <div class="flex gap-2">
+                            ${mode === 'load' ? `<button class="btn bg-blue-500 text-white hover:bg-blue-600 text-sm py-1 px-3" onclick="loadGame('${saveName}')">Carica</button>` : ''}
+                            <button class="btn bg-red-500 text-white hover:bg-red-600 text-sm py-1 px-3" onclick="deleteSave('${saveName}')">Cancella</button>
+                        </div>
+                    `;
+                    savedGamesList.appendChild(listItem);
+                });
+            }
+        }
+
+        function hideSaveLoadPrompt() {
+            saveListBox.classList.add('hidden');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.remove('opacity-100', 'scale-100');
+            saveListBox.querySelector('#save-list-content-wrapper').classList.add('opacity-0', 'scale-95');
+        }
+
+        function deleteSave(saveName) {
+            if (confirm(`Sei sicuro di voler cancellare il salvataggio "${saveName}"?`)) {
+                localStorage.removeItem(LOCAL_STORAGE_PREFIX + saveName);
+                showSaveLoadPrompt(saveInputArea.classList.contains('hidden') ? 'load' : 'save'); // Refresh list
+            }
+        }
+
+        // Random Events
+        function handleRandomEvents() {
+            if (Math.random() < 0.15) { // 15% chance of a random event
+                const eventType = Math.random();
+                if (eventType < 0.5) {
+                    // Good event: unexpected bonus
+                    const bonus = playerMoney * (Math.random() * 0.1 + 0.05); // 5-15% bonus
+                    playerMoney += bonus;
+                    showMessage("Evento Fortunato!", `Hai ricevuto un bonus inaspettato di ${formatCurrency(bonus)}!`);
+                } else {
+                    // Bad event: unexpected expense
+                    const expense = playerMoney * (Math.random() * 0.1 + 0.05); // 5-15% expense
+                    playerMoney -= expense;
+                    showMessage("Evento Sfortunato!", `Hai dovuto pagare una spesa imprevista di ${formatCurrency(expense)}.`);
+                }
+            }
+        }
+
+        // Monthly Advice
+        function generateMonthlyAdvice() {
+            let advice = "Continua a lavorare sodo e a investire saggiamente per raggiungere i tuoi obiettivi.";
+            const netWorth = calculateNetWorth();
+            if (netWorth < 5000) {
+                advice = "I tuoi fondi sono limitati. Concentrati sulla stabilità lavorativa prima di rischiare in investimenti.";
+            } else if (netWorth < 50000) {
+                advice = "Stai costruendo una base solida. Valuta l'acquisto di alcune azioni per diversificare i tuoi guadagni.";
+            } else if (netWorth < 1000000) {
+                advice = "Sei sulla buona strada per diventare un milionario! È il momento di pensare a investimenti più aggressivi o a un'azienda in proprio.";
+            } else if (netWorth >= 1000000 && netWorth < BILLION_TARGET * 0.1) {
+                advice = "Sei ufficialmente un milionario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
+            } else if (netWorth >= BILLION_TARGET * 0.1) {
+                advice = "Le tue fortune sono immense. Le tue decisioni potrebbero influenzare interi mercati. Punta a investimenti su larga scala o a una startup rivoluzionaria.";
+            }
+            monthlyReportEl.textContent = advice;
+        }
+
+        // --- Event Listeners and Initialization ---
+        function setupEventListeners() {
+            nextMonthBtn.addEventListener('click', nextMonth);
+            restartBtn.addEventListener('click', restartGame);
+            messageOkBtn.addEventListener('click', hideMessageBox);
+            buyStartupBtn.addEventListener('click', buyStartup);
+            sellStartupBtn.addEventListener('click', sellStartup);
+            const saveListBtn = document.getElementById('save-list-btn');
+            if (saveListBtn) saveListBtn.addEventListener('click', () => showSaveLoadPrompt('save'));
+            const loadListBtn = document.getElementById('load-list-btn');
+            if (loadListBtn) loadListBtn.addEventListener('click', () => showSaveLoadPrompt('load'));
+            closeSaveListBtn.addEventListener('click', hideSaveLoadPrompt);
+            showSaveInputBtn.addEventListener('click', () => {
+                saveInputArea.classList.remove('hidden');
+                showSaveInputBtn.classList.add('hidden');
+            });
+            confirmSaveBtn.addEventListener('click', () => {
+                const saveName = saveGameNameInput.value.trim();
+                if (saveName) {
+                    saveGame(saveName);
+                } else {
+                    showMessage("Nome non valido", "Per favore, inserisci un nome per il salvataggio.");
+                }
+            });
+
+            skipYearsBtn.addEventListener('click', skipYears);
+            skipMonthsBtn.addEventListener('click', skipMonths);
+            searchJobBtn.addEventListener('click', searchNewJobOffer);
+            careerTrainingBtn.addEventListener('click', careerTraining);
+
+            // Toggle Startup section visibility
+            startupHeader.addEventListener('click', () => {
+                startupContent.classList.toggle('hidden');
+                startupArrow.classList.toggle('rotated');
+            });
+        }
+
+        // --- Game Initialization ---
+        function initGame() {
+            generateMonthlyAdvice();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Initialize the game when the window loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
+-->
