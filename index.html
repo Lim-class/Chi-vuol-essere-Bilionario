@@ -458,28 +458,45 @@
 
         function calculateNetWorth() {
             let totalValue = playerMoney;
-            // Il debito fiscale è una passività, deve essere sottratto.
             totalValue -= unpaiedTaxDebt;
 
             // Add value of stocks
             stocks.forEach(stock => {
-                totalValue += (stock.owned || 0) * (stock.isFailed ? 0 : stock.value);
+                const stockValue = (stock.owned || 0) * (stock.isFailed ? 0 : stock.value);
+                if (!isNaN(stockValue)) {
+                    totalValue += stockValue;
+                }
             });
 
             // Add value of currencies
             currencies.forEach(currency => {
                 if (currency.name !== "Euro") {
-                    totalValue += (currency.owned || 0) * (currency.isFailed ? 0 : currency.value);
+                    const currencyValue = (currency.owned || 0) * (currency.isFailed ? 0 : currency.value);
+                    if (!isNaN(currencyValue)) {
+                        totalValue += currencyValue;
+                    }
                 }
             });
 
             // Add value of bonds
             bonds.forEach(bond => {
-                totalValue += (bond.owned || 0) * bond.value;
+                const bondValue = (bond.owned || 0) * bond.value;
+                if (!isNaN(bondValue)) {
+                    totalValue += bondValue;
+                }
             });
 
             // Add value of startups (based on current share value)
-            totalValue += playerStartups.reduce((sum, s) => sum + ((s.sharesOwned || 0) * s.shareValue), 0);
+            const startupValue = playerStartups.reduce((sum, s) => sum + ((s.sharesOwned || 0) * s.shareValue), 0);
+            if (!isNaN(startupValue)) {
+                totalValue += startupValue;
+            }
+            
+            // Final check on totalValue before returning
+            if (isNaN(totalValue)) {
+                console.error("Errore: Il calcolo del patrimonio netto ha prodotto NaN. Resetting to 0.");
+                return 0;
+            }
 
             return totalValue;
         }
@@ -623,7 +640,7 @@
 
         // Core Game Loop Functions
         function nextMonth() {
-            // Aggiungi un controllo per assicurarti che il denaro del giocatore sia un numero valido
+            // Aggiungi un controllo per assicurarsi che il denaro del giocatore sia un numero valido
             if (isNaN(playerMoney)) {
                 console.error("Errore: Il patrimonio del giocatore è NaN. Resetting to 0.");
                 playerMoney = 0;
@@ -1393,6 +1410,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 <!-- oppure questo:
