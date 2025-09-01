@@ -240,7 +240,7 @@
     </div>
     <script>
         // Game State Variables
-        let playerMoney = 1000; // Starting money (in EUR)
+        let playerMoney = 100000; // Starting money (in EUR)
         let playerAge = 18; // Starting age
         let playerTraining = 0; // New: Player's training level
         let currentDate = new Date(2025, 0, 1); // January 1, 2025
@@ -258,12 +258,13 @@
         const ASSET_REBIRTH_CHANCE = 0.10; // 10% chance per month for a failed asset to revive
         const ASSET_DELISTING_THRESHOLD = 3; // Number of months a failed asset stays before delisting chance
         const ASSET_DELISTING_CHANCE = 0.20; // 20% chance of delisting after threshold
-        const JOB_EVENT_CHANCE = 0.15; // 15% chance of a job-related event each month
+        const JOB_EVENT_CHANCE = 0.10; // 10% chance of a job-related event each month
         const MAX_TAX_DEFICIT_MONTHS = 8; // Max consecutive months with unpaied taxes
 
         // Data for Jobs, Stocks, and Currencies
         const jobs = [
             { title: "Disoccupato", salary: 0, trainingRequired: 0 },
+            { title: "Saltuario", salary: 302, trainingRequired: 0 },
             { title: "Lavoratore di fattoria", salary: 400, trainingRequired: 0 },
             { title: "Aiutante cuoco", salary: 500, trainingRequired: 0 },
             { title: "Commesso", salary: 700, trainingRequired: 0 },
@@ -279,7 +280,8 @@
             { title: "Direttore delle vendite", salary: 15000, trainingRequired: 9 },
             { title: "Chief Technology Officer (CTO)", salary: 25000, trainingRequired: 10 },
             { title: "Direttore finanziario (CFO)", salary: 35000, trainingRequired: 11 },
-            { title: "Amministratore Delegato (CEO)", salary: 50000, trainingRequired: 12 }
+            { title: "Amministratore Delegato (CEO)", salary: 50000, trainingRequired: 12 },
+            { title: "Amministratore Delegato 2^ livello (CEO2)", salary: 500000, trainingRequired: 12 }
         ];
 
         let stocks = [ {
@@ -2825,6 +2827,7 @@
 </body>
 </html>
 -->
+
 
 
 
