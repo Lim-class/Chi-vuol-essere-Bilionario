@@ -682,6 +682,7 @@
                         showMessage("Tasse Saldate", "Hai pagato il tuo debito fiscale accumulato. Ben fatto!");
                     } else {
                         showMessage("Pagamento Tasse Parziale", `Hai pagato parte del tuo debito fiscale. Ne rimangono ${formatCurrency(unpaiedTaxDebt)}.`);
+                        // Nome variabile debito fidcale: unpaiedTaxDebt
                     }
                 } else {
                     playerMoney -= totalExpenses;
@@ -1068,7 +1069,7 @@
             let taxPercentage;
 
             if (playerMoney <= 5000) {
-                taxPercentage = 0.25;
+                taxPercentage = 0.25; // Percentuale tassa da oagare: 25%
             } else if (playerMoney <= 50000) {
                 taxPercentage = 0.35;
             } else if (playerMoney <= 100000) {
@@ -1352,27 +1353,27 @@
             }
         }
 
-        // Monthly Advice
+        // Monthly Advice __ Consigli Mensili
         function generateMonthlyAdvice() {
-            let advice = "Continua a lavorare sodo e a investire saggiamente per raggiungere i tuoi obiettivi.";
+            let advice = "Continua a lavorare sodo e a investire saggiamente per raggiungere i tuoi obiettivi. Tasse: ${formatCurrency(taxAmount)";
             const netWorth = calculateNetWorth();
-            if (netWorth < 5000) {
+            if (netWorth < 5*10^3) {
                 advice = "I tuoi fondi sono limitati. Concentrati sulla stabilità lavorativa prima di rischiare in investimenti.";
-            } else if (netWorth < 50000) {
+            } else if (netWorth < 5*10^5) {
                 advice = "Stai costruendo una base solida. Valuta l'acquisto di alcune azioni per diversificare i tuoi guadagni.";
-            } else if (netWorth < 1000000) {
+            } else if (netWorth < 1*10^7) {
                 advice = "Sei sulla buona strada per diventare un milionario! È il momento di pensare a investimenti più aggressivi o a un'azienda in proprio.";
-            } else if (netWorth >= 1000000 && netWorth < BILLION_TARGET * 0.1) {
-                advice = "Sei ufficialmente un milionario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
-            } else if (netWorth >= 1000000000 && netWorth < BILLION_TARGET * 0.1) {
-                advice = "Sei ufficialmente un miliardario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
-            } else if (netWorth >= BILLION_TARGET * 0.1) {
-                advice = "Le tue fortune sono immense e sei Bilionario. Le tue decisioni potrebbero influenzare interi mercati. Punta a investimenti su larga scala o a una startup rivoluzionaria.";
-            } 
+            } else if ( netWorth < 1*10^10) {
+                advice = "Sei ufficialmente un Milionario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
+            } else if ( netWorth < 1*10^12) {
+                advice = "Sei ufficialmente un Miliardario!";
+            } else if (netWorth < 1*10^13) {
+                advice = "Sei ufficialmente un Bilionario!";
+            }
             monthlyReportEl.textContent = advice;
         }
 
-        // --- Event Listeners and Initialization ---
+        // --- Event Listeners and Initialization --- netWorth < BILLION_TARGET * 0.1 && netWorth
         function setupEventListeners() {
             nextMonthBtn.addEventListener('click', nextMonth);
             restartBtn.addEventListener('click', restartGame);
@@ -2824,4 +2825,5 @@
 </body>
 </html>
 -->
+
 
