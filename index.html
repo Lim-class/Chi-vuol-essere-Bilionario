@@ -312,11 +312,20 @@
         }, ];
 
         const bonds = [{
+            name: "Bund Alba",
+            value: 1,
+            interestRate: 1.000,
+            duration: 240
+        },{
             name: "Bund tedesco",
             value: 500,
             interestRate: 0.015,
             duration: 6
-        }, {
+        }, { name: "Bund Italiano",
+            value: 100000,
+            interestRate: 1.000,
+            duration: 48
+        },{
             name: "Bund Positivo",
             value: 1000,
             interestRate: 1.000,
@@ -658,7 +667,7 @@
             let totalExpenses = monthlyTax + startupCosts;
             if (playerMoney < totalExpenses) {
                 consecutiveTaxDeficitMonths++;
-                unpaiedTaxDebt += totalExpenses * 1.20; // 20% increase
+                unpaiedTaxDebt += totalExpenses * 1.10; // 10% increase
                 if (consecutiveTaxDeficitMonths >= MAX_TAX_DEFICIT_MONTHS) {
                     endGame(false, "Hai accumulato un deficit fiscale per più di 8 mesi consecutivi e sei stato dichiarato in bancarotta. Game Over!");
                     return;
@@ -1355,9 +1364,11 @@
                 advice = "Sei sulla buona strada per diventare un milionario! È il momento di pensare a investimenti più aggressivi o a un'azienda in proprio.";
             } else if (netWorth >= 1000000 && netWorth < BILLION_TARGET * 0.1) {
                 advice = "Sei ufficialmente un milionario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
+            } else if (netWorth >= 1000000000 && netWorth < BILLION_TARGET * 0.1) {
+                advice = "Sei ufficialmente un miliardario! Le tue decisioni ora hanno un impatto enorme. Gestisci con cura i tuoi asset.";
             } else if (netWorth >= BILLION_TARGET * 0.1) {
-                advice = "Le tue fortune sono immense. Le tue decisioni potrebbero influenzare interi mercati. Punta a investimenti su larga scala o a una startup rivoluzionaria.";
-            }
+                advice = "Le tue fortune sono immense e sei Bilionario. Le tue decisioni potrebbero influenzare interi mercati. Punta a investimenti su larga scala o a una startup rivoluzionaria.";
+            } 
             monthlyReportEl.textContent = advice;
         }
 
@@ -2813,3 +2824,4 @@
 </body>
 </html>
 -->
+
